@@ -53,7 +53,7 @@ export default function App() {
         setUser(resLogin.data.user);
         setSession(resLogin.data.token);
         setOtp(token.data.token);
-        navigate("/authentication/otp");
+        navigate("/home");
       }
     } catch (err: any) {
       if (err.response) {
@@ -80,7 +80,7 @@ export default function App() {
       <title>Inicia sesión | {db_store.name}</title>
       <div className="grid gap-5 w-full max-w-lg">
         <div className="place-content-start w-full">
-          <h3 className="text-3xl font-bold">Bienvenido a {db_store.name}</h3>
+          <h3 className="text-3xl font-bold">¡Bienvenido!</h3>
         </div>
         <form onSubmit={handleSubmit(handleRegisterData)}>
           <div className="flex flex-col flex-wrap gap-5 relative">
@@ -156,13 +156,10 @@ export default function App() {
               >
                 Terminos y condiciones
               </Checkbox>
-              <Link to={router.TERMS} target="_blank" className="text-blue-400 text-lg mx-2">
-                <FaLink />
-              </Link>
             </div>
             <div>
               <Button
-                className={`text-white font-medium bg-store ${
+                className={`text-white font-medium bg-emerald-400 ${
                   !isSelected ? "cursor-not-allowed" : ""
                 }`}
                 fullWidth
@@ -170,7 +167,7 @@ export default function App() {
                 type="submit"
                 disabled={!isSelected}
               >
-                Registrarse en {db_store.name}
+                Registrarse
               </Button>
             </div>
           </div>
@@ -178,19 +175,18 @@ export default function App() {
         <span className="h-[0.2px] bg-quanto/50"></span>
         <div className="flex justify-center items-center text-xs flex-col">
           <div>
-            <Link to={`/${router.AUTH}/${router.LOGIN}`} className="text-sm">
+            <Link to={`${router.LOGIN}`} className="text-sm">
               Ya tienes una cuenta?{" "}
               <span className="text-blue-500">Inicia sesión ahora</span>
             </Link>
           </div>
           <Button
             isIconOnly
-            color="danger"
             size="lg"
-            className="mt-10"
+            className="mt-10 bg-emerald-400"
             onPress={() => navigate("/")}
           >
-            <IoMdArrowRoundBack size={25} />
+            <IoMdArrowRoundBack size={25} className="text-white"/>
           </Button>
         </div>
       </div>

@@ -1,10 +1,10 @@
 export const ROUTES = {
     // HOME
-    HOME: '/',
+    HOME: '/home',
     LINK_TREE: '/social-links',
     TERMS: '/conditions',
     AUTH: 'authentication',
-    LOGIN: 'login',
+    LOGIN: '/',
     REGISTER: 'register',
     OTP: 'OTP',
     FORGOT_PASSWORD: 'forgot-password',

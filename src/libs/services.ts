@@ -16,13 +16,13 @@ export const handleAttemptLoginOnRegister = async (
 
 export const logout = async (navigate: any, logoutStore: any) => {
     logoutStore();
-    navigate("/authentication/login");
+    navigate("/");
 };
 
 export const getUser = async (setUser: any, session: string | null, logoutStore: any, navigate: any, user: any) => {
   if (session === null) {
     logoutStore();
-    navigate("/authentication/login");
+    navigate("/");
     return;
   }
   
@@ -31,7 +31,7 @@ export const getUser = async (setUser: any, session: string | null, logoutStore:
     if (res?.status === 200) return setUser(res?.data?.user);
     if (res?.status === 400 || res?.status === 401) {
       logoutStore();
-      navigate("/authentication/login");
+      navigate("/");
       toast.warning(
         "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."
       );
@@ -39,7 +39,7 @@ export const getUser = async (setUser: any, session: string | null, logoutStore:
     }
   } catch (err: any) {
     logoutStore();
-    navigate("/authentication/login");
+    navigate("/");
     toast.warning("Error al actualizar datos. " + err);
   }
 };

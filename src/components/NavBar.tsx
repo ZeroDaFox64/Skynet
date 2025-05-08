@@ -7,30 +7,16 @@ import {
   NavbarMenuToggle,
   NavbarMenuItem,
   NavbarMenu,
-  Badge,
 } from "@heroui/react";
 import ThemeSwitch from "./ui/ThemeSwith";
 import DropMenu from "./utils/DropMenu";
-import LogoLink from "./ui/LogoLink";
 import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import { ROUTES } from "../routes/routes";
 import { authorizationStore } from "../store/authenticationStore";
 import { logout } from "../libs/services";
 import db from "../db_store";
-
-import { MdShoppingCart } from "react-icons/md";
 import { IoLogOut } from "react-icons/io5";
-import { toast } from "sonner";
-
-const VerifiedLinks = [
-  { name: "Mi Perfil", path: "/user/profile" },
-  { name: "Suscripciones", path: "/user/subscriptions" },
-];
-const SuperAdminLinks = [{ name: "Panel de Control", path: "/dashboard" }];
-const UnverifiedLinks = [
-  { name: "Verificar Cuenta", path: "/authentication/otp" },
-];
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,46 +36,13 @@ export default function App() {
           className="sm:hidden mr-2"
         />
         <NavbarBrand>
-          <LogoLink route="/" />
+          {/* <LogoLink route="/" /> */}
+          <p className="font-bold text-2xl text-emerald-400">Japan Gallery</p>
         </NavbarBrand>
-      </NavbarContent>
-      <NavbarContent className="hidden sm:flex gap-10" justify="center">
-        <NavbarItem>
-          <Link className="font-semibold text-store" to="/">
-            Inicio
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <a className="font-semibold text-store" href="#catalog">
-            Productos
-          </a>
-        </NavbarItem>
-        <NavbarItem>
-          <a className="font-semibold text-store" href="#banner">
-            Promociones
-          </a>
-        </NavbarItem>
-        <NavbarItem>
-          <Link className="font-semibold text-store" to="/social-links">
-            Redes y soporte
-          </Link>
-        </NavbarItem>
       </NavbarContent>
       <NavbarContent justify="end">
         <NavbarItem className="hidden sm:flex items-center gap-3 mr-1">
           <ThemeSwitch />
-          <Badge color="danger" content="" shape="circle" size="md">
-            <Button
-              isIconOnly
-              onPress={() => toast.info("Próximamente...")}
-              size="sm"
-              aria-label="notifications"
-              radius="full"
-              variant="light"
-            >
-              <MdShoppingCart size={27} />
-            </Button>
-          </Badge>
         </NavbarItem>
         {db.backoffice && user ? (
           <DropMenu />
@@ -97,7 +50,7 @@ export default function App() {
           <div className="hidden sm:flex gap-3">
             <Button
               radius="full"
-              className="bg-store text-white font-semibold"
+              className="bg-emerald-600 text-white font-semibold"
               as={Link}
               to={`${ROUTES.AUTH}/${ROUTES.LOGIN}`}
             >
@@ -120,48 +73,6 @@ export default function App() {
             <Link className="font-semibold text-xl w-fit" to="/">
               Inicio
             </Link>
-            {db.backoffice && user && (
-              <>
-                {user?.rol === "verified user" || user?.rol === "superadmin" ? (
-                  <>
-                    {VerifiedLinks.map((item, index) => (
-                      <Link
-                        className="font-semibold text-xl w-fit"
-                        to={item.path}
-                        key={index}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-                    {user?.rol === "superadmin" && (
-                      <>
-                        {SuperAdminLinks.map((item, index) => (
-                          <Link
-                            className="font-semibold text-xl w-fit"
-                            to={item.path}
-                            key={index}
-                          >
-                            {item.name}
-                          </Link>
-                        ))}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {UnverifiedLinks.map((item, index) => (
-                      <Link
-                        className="font-semibold text-xl w-fit"
-                        to={item.path}
-                        key={index}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-                  </>
-                )}
-              </>
-            )}
             <Link className="font-semibold text-xl w-fit" to="/social-links">
               Redes y soporte
             </Link>

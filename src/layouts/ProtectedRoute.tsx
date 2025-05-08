@@ -5,7 +5,7 @@ interface ProtectedRouteProps {
   redirectPath?: string;
 }
 
-const ProtectedRoute = ({ redirectPath = "/authentication/login" }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ redirectPath = "/" }: ProtectedRouteProps) => {
   const { user } = authorizationStore();
   const isAuthenticated = user !== null;
 

@@ -17,12 +17,9 @@ function DropMenu() {
   const navigate = useNavigate();
 
   const VerifiedLinks = [
-    { name: "Mi Perfil", path: "/profile" },
-    { name: "Suscripciones", path: "/user/subscriptions" },
   ];
-  const SuperAdminLinks = [{ name: "Panel de Control", path: "/dashboard" }];
+  const SuperAdminLinks = [];
   const UnverifiedLinks = [
-    { name: "Verificar Cuenta", path: "/authentication/otp" },
   ];
 
   useEffect(() => {
@@ -47,36 +44,7 @@ function DropMenu() {
             <DropdownItem key="profile_1" className="h-10">
               <p className="font-semibold">Bienvenid@ {user?.username}</p>
             </DropdownItem>
-            {user?.rol === "verified user" || user?.rol === "superadmin" ? (
-              <>
-                {VerifiedLinks.map((item, index) => (
-                  <DropdownItem key={index} onPress={() => navigate(item.path)}>
-                    {item.name}
-                  </DropdownItem>
-                ))}
-                {user?.rol === "superadmin" && (
-                  <>
-                    {SuperAdminLinks.map((item, index) => (
-                      <DropdownItem
-                        key={index}
-                        onPress={() => navigate(item.path)}
-                      >
-                        {item.name}
-                      </DropdownItem>
-                    ))}
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                {UnverifiedLinks.map((item, index) => (
-                  <DropdownItem key={index} onPress={() => navigate(item.path)}>
-                    {item.name}
-                  </DropdownItem>
-                ))}
-              </>
-            )}
-            <DropdownItem key="logout" color="danger" className="mt-2">
+            <DropdownItem key="logout" color="danger">
               <Button
                 size="sm"
                 fullWidth

@@ -8,13 +8,13 @@ export default function App() {
   return (
     <Switch
       defaultSelected
-      color="danger"
+      color="default"
       size="lg"
       isSelected={theme === "light"}
       onChange={() => setTheme(theme === "dark" ? "light" : "dark")}
       thumbIcon={({ isSelected, className }) =>
         isSelected ? (
-          <IoIosSunny className={'text-danger'} />
+          <IoIosSunny/>
         ) : (
           <IoIosMoon className={className} />
         )

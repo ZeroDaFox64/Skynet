@@ -40,7 +40,7 @@ export default function App() {
         toast.success(`Bienvenido de nuevo ${res.data.user.username}!!`);
         setUser(res.data.user);
         setSession(res.data.token);
-        window.location.replace("/");
+        window.location.replace("/home");
       } else if (res.status === 400) {
         toast.error(res.data.message);
       } else if (res.status === 404) {
@@ -97,7 +97,7 @@ export default function App() {
               label="Contraseña"
               type={showPassword ? "text" : "password"}
             />
-            <div className="flex justify-between items-center text-xs">
+            {/* <div className="flex justify-between items-center text-xs">
               <div>
                 <NavLink
                   to={`/${router.AUTH}/${router.FORGOT_PASSWORD}`}
@@ -107,10 +107,10 @@ export default function App() {
                   Olvidé mi contraseña
                 </NavLink>
               </div>
-            </div>
+            </div> */}
             <div>
               <Button
-                className="text-white font-medium bg-store"
+                className="text-white font-medium bg-emerald-400"
                 fullWidth
                 isLoading={isLoading}
                 type="submit"
@@ -130,12 +130,11 @@ export default function App() {
           </div>
           <Button
             isIconOnly
-            color="danger"
             size="lg"
-            className="mt-10"
+            className="mt-10 bg-emerald-400"
             onPress={() => navigate("/")}
           >
-            <IoMdArrowRoundBack size={25} />
+            <IoMdArrowRoundBack size={25} className="text-white" />
           </Button>
         </div>
       </div>
