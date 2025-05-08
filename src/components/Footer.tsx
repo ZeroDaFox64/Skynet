@@ -1,8 +1,3 @@
-import { Button } from "@heroui/react";
-import { Link } from "react-router";
-import { FaTiktok } from "react-icons/fa";
-import { AiFillInstagram } from "react-icons/ai";
-import { TbBrandWhatsappFilled } from "react-icons/tb";
 
 export default function App({ light = false }) {
   return (
