@@ -5,12 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ROUTES } from "../../routes/routes";
 import { authRule } from "../../rules/authRules";
-import { NavLink, Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { LoginFormInterface } from "../../interfaces/authInterface";
 import { authorizationStore } from "../../store/authenticationStore";
 import { toast } from "sonner";
 import { handleAttemptLoginOnRegister } from "../../libs/services";
-import db_store from "../../db_store";
 
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import { IoMdArrowRoundBack } from "react-icons/io";

@@ -16,12 +16,6 @@ function DropMenu() {
   const { user, setUser, logout: logoutStore, session } = authorizationStore();
   const navigate = useNavigate();
 
-  const VerifiedLinks = [
-  ];
-  const SuperAdminLinks = [];
-  const UnverifiedLinks = [
-  ];
-
   useEffect(() => {
     getUser(setUser, session, logoutStore, navigate, user);
   }, []);

@@ -10,13 +10,11 @@ import { RegisterFormInterface } from "../../interfaces/authInterface";
 import { authorizationStore } from "../../store/authenticationStore";
 import { toast } from "sonner";
 import { handleAttemptLoginOnRegister } from "../../libs/services";
-import db_store from "../../db_store";
 import { api } from "../../libs/api";
 
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { FaRegEye } from "react-icons/fa6";
 import { FaRegEyeSlash } from "react-icons/fa6";
-import { FaLink } from "react-icons/fa6";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(false);
