@@ -13,8 +13,10 @@ const MasonryGallery = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-8">Galería Japon</h1>
+    <div className="con
+    tainer mx-auto px-4 py-8">
+      <title>Inicio</title>
+      <h1 className="text-3xl font-bold text-center mb-16">¡Bienvenido a nuestra galería!</h1>
       
       {/* Contenedor Masonry con Tailwind */}
       <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">

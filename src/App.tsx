@@ -10,14 +10,12 @@ import NotFound from "./pages/notFound";
 import Otp from "./pages/auth/otp";
 import ProtectedRoute from "./layouts/ProtectedRoute";
 import { Toaster } from "sonner";
-import Cookies from "./components/landing/Cookies";
 import "./index.css";
 
 export default function App() {
   return (
     <>
       <Toaster richColors position="top-center" />
-      <Cookies />
       <BrowserRouter>
         <Routes>
           {/* Rutas públicas */}

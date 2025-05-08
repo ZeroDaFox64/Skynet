@@ -58,7 +58,7 @@ export default function App() {
 
   return (
     <>
-      <title>Inicia sesión | {db_store.name}</title>
+      <title>Inicia sesión</title>
       <div className="grid gap-5 w-full max-w-lg">
         <div className="place-content-start w-full">
           <h3 className="text-3xl font-bold">Bienvenido de nuevo</h3>

@@ -26,7 +26,7 @@ export default function App() {
   return (
     <Navbar
       shouldHideOnScroll
-      className="shadow-xl z-40 bg-pink"
+      className="shadow-none z-40 bg-pink"
       maxWidth="full"
       onMenuOpenChange={setIsMenuOpen}
     >
@@ -37,7 +37,7 @@ export default function App() {
         />
         <NavbarBrand>
           {/* <LogoLink route="/" /> */}
-          <p className="font-bold text-2xl text-emerald-400">Japan Gallery</p>
+          <p className="font-bold text-2xl text-emerald-400">Gallery</p>
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent justify="end">
