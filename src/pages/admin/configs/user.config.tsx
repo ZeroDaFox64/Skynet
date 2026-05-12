@@ -8,12 +8,12 @@ import { FaCrown } from "react-icons/fa";
 export const userTableConfig = {
   name: "Usuarios",
   columns: [
-    { 
-      name: "Acciones", 
-      key: "actions", 
-      handlerValue: (value : any) => {
+    {
+      name: "Acciones",
+      key: "actions",
+      handlerValue: (value: any) => {
         return (
-          <Edit entity="user" id={value?._id}/>
+          <Edit entity="user" id={value?.id} />
         );
       },
     },
@@ -27,27 +27,8 @@ export const userTableConfig = {
       },
     },
     {
-      name: "Teléfono",
-      key: "phone",
-      isFilterable: true,
-      handlerValue: (value: any) => {
-        if (typeof value !== "string") return '-'
-        const phone = value.replace(/\D/g, '');
-        return <a href={`https://api.whatsapp.com/send?phone=${phone}`} target="_blank" rel="noopener noreferrer">+{phone}</a>;
-      },
-    },
-    {
-      name: "Nombre de usuario",
-      key: "username",
-      isFilterable: true,
-      handlerValue: (value: any) => {
-        if (typeof value !== "string") return '-'
-        return value;
-      },
-    },
-    {
       name: "Rol",
-      key: "rol",
+      key: "role",
       handlerValue: (value: any) => {
         if (typeof value !== "string") return '-'
         if (value === "superadmin")
@@ -81,17 +62,16 @@ export const userTableConfig = {
       },
     },
     {
-      name: "Apellido",
-      key: "lastname",
-      isFilterable: true,
+      name: "Fecha de registro",
+      key: "createdAt",
       handlerValue: (value: any) => {
         if (typeof value !== "string") return '-'
-        return value;
+        return moment(value).format("DD/MM/YYYY");
       },
     },
     {
-      name: "Fecha de registro",
-      key: "created_at",
+      name: "Última modificación",
+      key: "updatedAt",
       handlerValue: (value: any) => {
         if (typeof value !== "string") return '-'
         return moment(value).format("DD/MM/YYYY");
@@ -111,43 +91,20 @@ export const userFormConfig = {
       required: true,
     },
     {
-      name: "username",
-      label: "Nombre de usuario",
-      component: "TEXT",
-      required: true,
-    },
-    {
-      name: "rol",
+      name: "role",
       label: "Rol",
       required: true,
       component: "SELECT",
       default: "user",
       options: [
-        { value: "user", label: "No verificado" },
-        { value: "verified user", label: "Verificado" },
+        { value: "user", label: "Usuario" },
         { value: "admin", label: "Administrador", disabled: true },
-        { value: "superadmin", label: "Super Administrador", disabled: true },
       ],
     },
     {
       name: "name",
       label: "Nombre",
       component: "TEXT",
-    },
-    {
-      name: "lastname",
-      label: "Apellido",
-      component: "TEXT",
-    },
-    {
-      name: "phone",
-      label: "Teléfono",
-      component: "TEXT",
-    },
-    {
-      name: "observations",
-      label: "Observaciones adicionales",
-      component: "TEXTAREA",
     },
   ],
 };

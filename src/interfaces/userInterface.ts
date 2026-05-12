@@ -2,7 +2,7 @@ export interface UserInterface {
     username: string;
     email: string;
     password: string;
-    rol: string;
+    role: string;
     name?: string;
     lastname?: string;
     phone?: string;
@@ -15,7 +15,7 @@ export interface UserStoreInterface {
     avatar: string;
     username: string;
     email: string;
-    rol: string;
+    role: string;
     name?: string;
     lastname?: string;
     phone?: string;
@@ -25,4 +25,4 @@ export interface UserStoreInterface {
 
 export interface ChangeUsernameInterface {
     username: string;
-  }
+}

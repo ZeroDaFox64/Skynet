@@ -5,6 +5,7 @@ import { config } from "../configs/index.config";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"; // Importar useSearchParams
 import { useEffect, useState } from "react";
 import { api } from "../../../libs/api";
+import AdminHeader from "../../../components/admin/adminHeader";
 import {
   BreadcrumbItem,
   Breadcrumbs,
@@ -192,10 +193,12 @@ export default function App() {
   };
 
   return (
-    <>
-      <title>{table.name} | Panel de control</title>
-      <div className="w-full flex flex-col justify-start items-center gap-5">
-        <div className="w-full max-w-7xl flex justify-start items-center px-3 gap-3">
+    <div className="min-h-screen bg-[#f9fafb] dark:bg-zinc-950 font-sans transition-colors duration-300">
+      <AdminHeader />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <title>{table.name} | Panel de control</title>
+        <div className="w-full flex flex-col justify-start items-center gap-5">
+          <div className="w-full max-w-7xl flex justify-start items-center px-3 gap-3">
           <Input
             placeholder="Buscar registro"
             className="max-w-xl"
@@ -329,7 +332,8 @@ export default function App() {
           variant="light"
           onChange={handlePageChange}
         />
-      </div>
-    </>
+        </div>
+      </main>
+    </div>
   );
 }

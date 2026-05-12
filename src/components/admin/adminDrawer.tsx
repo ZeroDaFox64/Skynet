@@ -11,37 +11,35 @@ import {
   ListboxItem,
 } from "@heroui/react";
 
-import { FaUser } from "react-icons/fa";
-import { IoMdCreate } from "react-icons/io";
-import { IoMdAddCircle, IoMdRemoveCircle } from "react-icons/io";
-import { MdOutlineMiscellaneousServices } from "react-icons/md";
-import { FaUsers } from "react-icons/fa";
+import { IoMdCreate, IoMdAddCircle } from "react-icons/io";
+import { FaUsers, FaChartPie, FaChartLine } from "react-icons/fa6";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { AiFillProduct } from "react-icons/ai";
-import { PiPackageFill } from "react-icons/pi";
-import { FaChartPie } from "react-icons/fa6";
 import { BiSolidBusiness } from "react-icons/bi";
-import { RiCoinsFill } from "react-icons/ri";
-import { FaHistory } from "react-icons/fa";
-import { FaChartLine } from "react-icons/fa6";
-import { FaHourglassStart } from "react-icons/fa";
-import { FaHourglassHalf } from "react-icons/fa";
-import { FaHourglassEnd } from "react-icons/fa";
-import { SiCrunchyroll } from "react-icons/si";
 import { TbLogout2 } from "react-icons/tb";
-import { RiFileExcel2Line } from "react-icons/ri";
-import { LuPowerOff, LuPower } from "react-icons/lu";
 import { useNavigate } from "react-router";
+import { authorizationStore } from "../../store/authenticationStore";
 
 export default function App() {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
-
   const navigate = useNavigate();
+
+  // Obtenemos el usuario del store para validar su rol
+  const { user } = authorizationStore();
+  const isAdmin = user?.role === "admin" || user?.role === "ADMIN";
 
   const handleNavigate = (link: string) => {
     navigate(link);
     onClose();
   };
+
+  // Filtramos los items del menú basado en el rol del usuario
+  const filteredMenuItems = menuItems.filter(item => {
+    if (item.section === "Compañía" && !isAdmin) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <>
@@ -54,45 +52,42 @@ export default function App() {
         backdrop="transparent"
         className="sm:max-w-[350px]"
       >
-        <DrawerContent>
+        <DrawerContent className="bg-white dark:bg-zinc-950 text-gray-900 dark:text-white border-r border-gray-100 dark:border-zinc-800">
           <>
-            <DrawerHeader className="flex items-center gap-3">
-              <Button isIconOnly onPress={() => handleNavigate("/")}>
-                <TbLogout2 size={25} />
+            <DrawerHeader className="flex items-center gap-4 border-b border-gray-100 dark:border-zinc-800 pb-4 pt-6 px-6">
+              <Button isIconOnly variant="light" color="danger" onPress={() => handleNavigate("/login")} className="shrink-0 hover:bg-red-50 dark:hover:bg-red-950/30">
+                <TbLogout2 size={24} className="text-[#da1f26] dark:text-red-500" />
               </Button>
-              <p className="text-xl font-bold">Panel de control</p>
-            </DrawerHeader>
-            <DrawerBody>
-              <div className="grid grid-cols-2 gap-3 w-full">
-                <Button className="bg-[#FFE600] rounded-lg" onPress={() => window.open("https://www.mercadolibre.com.ve/pagina/nittostore")}>
-                  <img src="/logo_ml.png" alt="logo" className="w-[100px] " />
-                </Button>
-                <Button className="bg-[#007139] rounded-lg font-semibold" onPress={() => window.open("https://docs.google.com/spreadsheets/d/1R7jV5BEVK_kp5sOl2XYcW6sLiE5dJbIqQoUjHXTzq5I/edit?usp=drivesdk")}>
-                  <RiFileExcel2Line size={20} /> Nitto Sheets
-                </Button>
+              <div className="flex flex-col">
+                <p className="text-2xl font-black text-[#da1f26] dark:text-red-500 uppercase tracking-widest leading-none">DORE'S</p>
+                <p className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mt-1">Panel Central</p>
               </div>
-              <Accordion isCompact>
-                {menuItems.map((item, index) => (
+            </DrawerHeader>
+            <DrawerBody className="pt-6 px-4">
+              <Accordion isCompact variant="light">
+                {filteredMenuItems.map((item, index) => (
                   <AccordionItem
-                    startContent={item?.icon}
+                    startContent={<div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-950/40 text-[#da1f26] dark:text-red-400 flex items-center justify-center shrink-0">{item?.icon}</div>}
                     key={index}
                     aria-label="item"
-                    title={item?.section}
-                    subtitle={item?.description}
+                    title={<span className="font-bold text-gray-800 dark:text-zinc-200">{item?.section}</span>}
+                    subtitle={<span className="text-xs text-gray-500 dark:text-zinc-400 font-medium">{item?.description}</span>}
                     isDisabled={item?.status === "disabled"}
+                    className="mb-2"
                   >
-                    <Listbox aria-label="listbox">
-                      {item?.items?.map((item, index) => (
+                    <Listbox aria-label="listbox" className="pl-2">
+                      {item?.items?.map((subItem, idx) => (
                         <ListboxItem
-                          key={index + item?.name}
-                          onPress={() => handleNavigate(item?.link)}
-                          description={item?.description}
-                          startContent={item?.icon}
+                          key={idx + subItem?.name}
+                          onPress={() => handleNavigate(subItem?.link)}
+                          description={<span className="text-xs opacity-70">{subItem?.description}</span>}
+                          startContent={<div className="text-gray-400 dark:text-zinc-500 shrink-0">{subItem?.icon}</div>}
                           color="danger"
                           variant="flat"
                           aria-label="item"
+                          className="dark:text-zinc-300 py-3"
                         >
-                          {item?.name}
+                          <span className="font-bold text-sm">{subItem?.name}</span>
                         </ListboxItem>
                       ))}
                     </Listbox>
@@ -103,8 +98,8 @@ export default function App() {
           </>
         </DrawerContent>
       </Drawer>
-      <Button onPress={onOpen} isIconOnly className="bg-transparent">
-        <RxHamburgerMenu className="text-gray-500" size={25} />
+      <Button onPress={onOpen} isIconOnly className="bg-transparent hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+        <RxHamburgerMenu className="text-gray-700 dark:text-zinc-300" size={24} />
       </Button>
     </>
   );
@@ -113,208 +108,75 @@ export default function App() {
 const menuItems = [
   {
     section: "Resumen",
-    description: "Gráficos y estadísticas",
+    description: "Panel principal",
     status: "enabled",
-    icon: <FaChartPie />,
+    icon: <FaChartPie size={16} />,
     items: [
       {
-        name: "Resumen de la tienda",
-        description: "Gráficos y estadísticas",
-        icon: <FaChartLine />,
+        name: "Dashboard",
+        description: "Métricas y accesos rápidos",
+        icon: <FaChartLine size={18} />,
         link: "/dashboard",
       },
     ],
   },
   {
     section: "Usuarios",
-    description: "Clientes y perfiles",
+    description: "Gestión de personal",
     status: "enabled",
-    icon: <FaUser />,
+    icon: <FaUsers size={16} />,
     items: [
       {
-        name: "Registrar un usuario",
-        description: "Clientes nuevos",
-        icon: <IoMdAddCircle />,
+        name: "Registrar usuario",
+        description: "Añadir nuevo miembro",
+        icon: <IoMdAddCircle size={18} />,
         link: "/add/user",
       },
       {
-        name: "Usuarios registrados",
-        description: "Listado con filtros",
-        icon: <IoMdCreate />,
+        name: "Lista de usuarios",
+        description: "Ver todos los registros",
+        icon: <IoMdCreate size={18} />,
         link: "/view/user",
       },
     ],
   },
   {
-    section: "Cuentas",
-    description: "Servicios de streaming",
-    icon: <FaUsers />,
-    status: "enabled",
-    items: [
-      {
-        name: "Registrar una cuenta",
-        description: "Cuentas nuevas",
-        icon: <IoMdAddCircle />,
-        link: "/add/account",
-      },
-      {
-        name: "Cuentas registradas",
-        description: "Listado con filtros",
-        icon: <IoMdCreate />,
-        link: "/view/account",
-      },
-    ],
-  },
-  {
-    section: "Suscripciones",
-    description: "Servicios de streaming",
-    icon: <SiCrunchyroll />,
-    status: "enabled",
-    items: [
-      {
-        name: "Nueva suscripción",
-        description: "Asignación de cuentas",
-        icon: <IoMdAddCircle />,
-        link: "/add/subscription",
-      },
-      {
-        name: "Suscripciones registradas",
-        description: "Listado con filtros",
-        icon: <IoMdCreate />,
-        link: "/view/subscription",
-      },
-      {
-        name: "Suscripciones activas",
-        description: "Usuarios activos",
-        icon: <LuPower />,
-        link: "/view/subscription/?status=active",
-      },
-      {
-        name: "Suscripciones inactivas",
-        description: "Usuarios inactivos",
-        icon: <LuPowerOff />,
-        link: "/view/subscription/?status=inactive",
-      },
-    ],
-  },
-  {
-    section: "Catalogo",
+    section: "Catálogo",
     description: "Productos e inventario",
-    icon: <AiFillProduct />,
+    status: "enabled",
+    icon: <AiFillProduct size={16} />,
     items: [
       {
-        name: "Registrar un producto",
-        description: "Gestión de productos e inventario",
-        icon: <IoMdAddCircle />,
+        name: "Registrar producto",
+        description: "Añadir al inventario",
+        icon: <IoMdAddCircle size={18} />,
         link: "/add/product",
       },
       {
-        name: "Productos registrados",
-        description: "Listado con filtros",
-        icon: <IoMdCreate />,
+        name: "Lista de productos",
+        description: "Ver todos los ítems",
+        icon: <IoMdCreate size={18} />,
         link: "/view/product",
       },
     ],
   },
   {
-    section: "Pedidos",
-    description: "Administración de compras online",
-    icon: <PiPackageFill />,
-    status: "disabled",
-    items: [
-      {
-        name: "Pedidos nuevos",
-        description: "Sin atender",
-        icon: <FaHourglassStart />,
-        link: "#",
-      },
-      {
-        name: "Pedidos en proceso",
-        description: "En curso",
-        icon: <FaHourglassHalf />,
-        link: "#",
-      },
-      {
-        name: "Pedidos cerrados",
-        description: "Finalizados",
-        icon: <FaHourglassEnd />,
-        link: "#",
-      },
-    ],
-  },
-  {
-    section: "Finanzas",
-    description: "Historial de movimientos",
-    icon: <FaChartPie />,
-    status: "disabled",
-    items: [
-      {
-        name: "Registrar venta",
-        description: "Gestión de ingresos",
-        icon: <IoMdAddCircle />,
-        link: "#",
-      },
-      {
-        name: "Registrar factura",
-        description: "Gestión de egresos",
-        icon: <IoMdRemoveCircle />,
-        link: "#",
-      },
-      {
-        name: "Ventas registradas",
-        description: "Listado con filtros",
-        icon: <FaHistory />,
-        link: "#",
-      },
-      {
-        name: "Resumen de ventas",
-        description: "Reporte de datos",
-        icon: <FaChartLine />,
-        link: "#",
-      },
-    ],
-  },
-  {
-    section: "Configuración",
-    description: "Administración general",
-    icon: <MdOutlineMiscellaneousServices />,
+    section: "Compañía",
+    description: "Configuración global",
     status: "enabled",
+    icon: <BiSolidBusiness size={16} />,
     items: [
       {
-        name: "Nitto",
-        description: "Contenido de la tienda",
-        icon: <BiSolidBusiness />,
-        link: "#",
+        name: "Registrar compañía",
+        description: "Añadir nueva empresa",
+        icon: <IoMdAddCircle size={18} />,
+        link: "/add/company",
       },
       {
-        name: "Monedas",
-        description: "Tasas y tipos de cambio",
-        icon: <RiCoinsFill />,
-        link: "#",
-      },
-      {
-        name: "Servicios",
-        description: "Módulo de configuración",
-        icon: <IoMdCreate />,
-        link: "/view/service",
-      },
-      {
-        name: "Categorías de productos",
-        description: "Módulo de configuración",
-        icon: <IoMdCreate />,
-        link: "/view/productCategory",
-      },
-      {
-        name: "Preveedores",
-        description: "Módulo de configuración",
-        icon: <IoMdCreate />,
-        link: "/view/provider",
-      },
-      {
-        name: "Métodos de pago",
-        description: "Módulo de configuración",
-        icon: <IoMdCreate />,
-        link: "#",
+        name: "Datos de la empresa",
+        description: "Información general",
+        icon: <IoMdCreate size={18} />,
+        link: "/view/company",
       },
     ],
   },
