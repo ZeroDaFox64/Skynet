@@ -91,12 +91,6 @@ export const userFormConfig = {
       required: true,
     },
     {
-      name: "password",
-      label: "Contraseña",
-      component: "TEXT",
-      required: true,
-    },
-    {
       name: "role",
       label: "Rol",
       required: true,

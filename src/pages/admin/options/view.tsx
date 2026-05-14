@@ -255,7 +255,7 @@ export default function App() {
                       <CardBody className="p-0">
                         <Image
                           shadow="sm"
-                          onClick={() => navigate(`/edit/${entity}/${item?._id}`)}
+                          onClick={() => navigate(`/edit/${entity}/${item?.id}`)}
                           radius="lg"
                           width="100%"
                           alt={item?.name}

@@ -113,9 +113,9 @@ export default function App() {
               type="text"
               size="md"
               startContent={<FaUser className="text-gray-400 dark:text-zinc-500 mr-2" />}
-              {...register("username", { required: true })}
-              errorMessage={errors?.username?.message?.toString()}
-              isInvalid={!!errors?.username}
+              {...register("name", { required: true })}
+              errorMessage={errors?.name?.message?.toString()}
+              isInvalid={!!errors?.name}
               classNames={{
                 inputWrapper: "border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-800/50 hover:bg-white dark:hover:bg-zinc-800 hover:border-[#da1f26] focus-within:!bg-white dark:focus-within:!bg-zinc-800 focus-within:!border-[#da1f26] focus-within:!ring-2 focus-within:!ring-[#da1f26]/20 transition-all rounded-xl",
                 label: "text-gray-600 dark:text-zinc-400 font-bold text-xs",

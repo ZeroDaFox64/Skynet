@@ -45,16 +45,12 @@ export interface AdminSubscriptionFormInterface {
 }
 
 export interface AdminProductFormInterface {
+  sku: string;
   name: string;
-  description: string;
-  category: string;
-  features: any;
-  front_image: any;
-  images: any;
   price: number;
-  discount: number;
-  genre: string;
   product_category: string;
+  description?: string;
+  front_image?: string;
 }
 
 export interface AdminProductCategoryFormInterface {

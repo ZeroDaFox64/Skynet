@@ -10,9 +10,18 @@ export const productTableConfig = {
       handlerValue: (value: any) => {
         return (
           <div className="flex gap-2">
-            <Edit entity="product" id={value?._id} />
+            <Edit entity="product" id={value?.id} />
           </div>
         );
+      },
+    },
+    {
+      name: "SKU",
+      key: "sku",
+      isFilterable: true,
+      handlerValue: (value: any) => {
+        if (typeof value === "string") return value;
+        return '-'
       },
     },
     {
@@ -24,12 +33,28 @@ export const productTableConfig = {
         return '-'
       },
     },
+    {
+      name: "Categoría",
+      key: "product_category",
+      isFilterable: true,
+      handlerValue: (value: any) => {
+        if (typeof value === "string") return value;
+        return '-'
+      },
+    },
+    {
+      name: "Precio",
+      key: "price",
+      handlerValue: (value: any) => {
+        return `$${value}`;
+      },
+    },
   ],
 };
 
 export const productFormConfig = {
   name: "Registrar un nuevo producto",
-  description: "Productos nuevos",
+  description: "Gestión de productos del catálogo",
   fields: [
     {
       name: "sku",
@@ -48,13 +73,16 @@ export const productFormConfig = {
     {
       name: "product_category",
       label: "Categoría",
-      component: "ASYNC_SELECT",
-      endpoint: "/productCategory",
-      default: "",
-      key: "productCategories",
-      title: "name",
-      value: "_id",
+      component: "SELECT",
       required: true,
+      options: [
+        { value: "bebida", label: "Bebida" },
+        { value: "hamburguesa", label: "Hamburguesa" },
+        { value: "pollo", label: "Pollo" },
+        { value: "pizza", label: "Pizza" },
+        { value: "postre", label: "Postre" },
+        { value: "otros", label: "Otros" },
+      ],
     },
     {
       name: "price",
@@ -62,30 +90,10 @@ export const productFormConfig = {
       component: "NUMBER",
       default: 1,
       required: true,
-      minValue: 1,
-      maxValue: 1000,
-      startContent: "$",
-    },
-    {
-      name: "discount",
-      label: "Descuento porcentual",
-      component: "NUMBER",
-      default: 0,
       minValue: 0,
-      maxValue: 100,
-      startContent: "%",
-    },
-    {
-      name: "link_mercadolibre",
-      label: "Link a MercadoLibre",
-      component: "TEXT",
-      default: "",
-    },
-    {
-      name: "genre",
-      label: "Géneros",
-      component: "TEXT",
-      default: "",
+      step: 0.01,
+      maxValue: 1000000,
+      startContent: "$",
     },
     {
       name: "description",
@@ -94,24 +102,10 @@ export const productFormConfig = {
       default: "",
     },
     {
-      name: "features",
-      label: "Características del producto",
-      component: "FEATURES",
-      default: [],
-    },
-    {
       name: "front_image",
-      label: "Imagen frontal del producto",
-      component: "IMAGE",
-      required: true,
+      label: "Imagen del producto (URL)",
+      component: "TEXT",
       default: "",
-    },
-    {
-      name: "images",
-      label: "Imágenes del producto",
-      component: "IMAGE",
-      multiple: true,
-      default: [],
     },
   ],
 };

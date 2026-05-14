@@ -10,6 +10,7 @@ export const userRule = z.object({
     .email("El correo electrónico no es válido"),
   role: z.string(),
   // Opcionales
+  company_id: z.string(),
   name: z.string()
     .max(30, "El nombre no puede tener más de 30 caracteres")
     .nullable()

@@ -19,7 +19,7 @@ export interface LoginFormInterface {
   
   export interface RegisterFormInterface {
     email: string;
-    username: string;
+    name: string;
     password: string;
     password_confirmation: string;
   }

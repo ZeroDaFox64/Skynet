@@ -71,7 +71,7 @@ const AsyncSelectInput = forwardRef<HTMLInputElement, AsyncSelectInputProps>(
         isRequired={required}
         isInvalid={!!error}
         errorMessage={error?.message || ""}
-        selectedKey={value?.[valueKey] || value}
+        selectedKey={String(value?.[valueKey] ?? value ?? "")}
         onSelectionChange={(key) => {
           setValue(field.name, key);
         }}

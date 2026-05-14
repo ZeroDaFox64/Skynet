@@ -33,9 +33,11 @@ export default function App() {
     onClose();
   };
 
+  const adminOnlySections = ["Usuarios", "Compañía"];
+
   // Filtramos los items del menú basado en el rol del usuario
   const filteredMenuItems = menuItems.filter(item => {
-    if (item.section === "Compañía" && !isAdmin) {
+    if (adminOnlySections.includes(item.section) && !isAdmin) {
       return false;
     }
     return true;

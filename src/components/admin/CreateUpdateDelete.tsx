@@ -292,7 +292,8 @@ export default function App({ formType = "add" }: { formType: string }) {
                         field: { value, ...rest },
                         fieldState: { error },
                       }) => (
-                        <NumberInput
+                        <Input
+                          type="number"
                           label={field.label}
                           aria-label={field.label}
                           className={`${field.show === "onlyCreate" && id ? "hidden" : ""
@@ -302,8 +303,9 @@ export default function App({ formType = "add" }: { formType: string }) {
                           isRequired={field.required}
                           labelPlacement="outside"
                           startContent={<p className="text-gray-500 font-bold">{field.startContent}</p>}
-                          minValue={field.minValue || 0}
-                          maxValue={field.maxValue || 24}
+                          min={field.minValue ?? 0}
+                          max={field.maxValue ?? 9999999}
+                          step={field.step ?? "any"}
                           isDisabled={
                             field.disable && formType === "update"
                               ? true
@@ -313,7 +315,7 @@ export default function App({ formType = "add" }: { formType: string }) {
                           size="sm"
                           errorMessage={error?.message || ""}
                           isInvalid={!!error}
-                          value={value || ""}
+                          value={value ?? ""}
                           {...rest}
                         />
                       )}
