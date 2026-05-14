@@ -20,6 +20,9 @@ import { productRule } from "./rules/product.rule";
 // Categoría de producto
 import { productCategoryTableConfig, productCategoryFormConfig } from "./productCategory.config";
 import { productCategoryRule } from "./rules/productCategory.rule";
+// Empresa
+import { companyTableConfig, companyFormConfig } from "./company.config";
+import { companyRule } from "./rules/company.rule";
 // Interfaces
 import {
   AdminRegisterFormInterface,
@@ -29,6 +32,7 @@ import {
   AdminSubscriptionFormInterface,
   AdminProductFormInterface,
   AdminProductCategoryFormInterface,
+  AdminCompanyFormInterface,
 } from "../../../interfaces/adminInterface";
 
 type EntityConfig<T> = {
@@ -49,6 +53,7 @@ type Config = {
   subscription: EntityConfig<AdminSubscriptionFormInterface>;
   product: EntityConfig<AdminProductFormInterface>;
   productCategory: EntityConfig<AdminProductCategoryFormInterface>;
+  company: EntityConfig<AdminCompanyFormInterface>;
 };
 
 export const config: Config = {
@@ -107,5 +112,13 @@ export const config: Config = {
     table: productCategoryTableConfig,
     form: productCategoryFormConfig,
     formSchema: productCategoryRule,
+  },
+  company: {
+    endpoint: "/company",
+    singleKey: "company",
+    allKey: "companies",
+    table: companyTableConfig,
+    form: companyFormConfig,
+    formSchema: companyRule,
   },
 };

@@ -62,3 +62,15 @@ export interface AdminProductCategoryFormInterface {
   description: string;
 }
 
+export interface AdminCompanyFormInterface {
+  rif: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  description: string;
+}
+

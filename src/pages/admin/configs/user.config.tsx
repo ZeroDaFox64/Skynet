@@ -91,6 +91,12 @@ export const userFormConfig = {
       required: true,
     },
     {
+      name: "password",
+      label: "Contraseña",
+      component: "TEXT",
+      required: true,
+    },
+    {
       name: "role",
       label: "Rol",
       required: true,
@@ -105,6 +111,15 @@ export const userFormConfig = {
       name: "name",
       label: "Nombre",
       component: "TEXT",
+    },
+    {
+      name: "company_id",
+      label: "Empresa",
+      component: "ASYNC_SELECT",
+      endpoint: "/company",
+      key: "companies",
+      title: "name",
+      value: "id",
     },
   ],
 };
