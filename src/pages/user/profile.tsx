@@ -18,7 +18,7 @@ function Dashboard() {
         <div className="text-center text-white text-base font-semibold mb-5">
           ¡Bienvenid@!
         </div>
-        {user?.rol === "superadmin" ? (
+        {user?.role === "superadmin" ? (
           <Chip
             color="warning"
             className="text-white"

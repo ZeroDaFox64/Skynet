@@ -63,6 +63,7 @@ export default function MesaView() {
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [tasaBcv, setTasaBcv] = useState<number>(36.5); // Fallback inicial
+  const [copied, setCopied] = useState(false);
 
   const [username] = useState(() => {
     return user?.name || localStorage.getItem('guest_username') || `Invitado_${Math.floor(Math.random() * 1000)}`;
@@ -146,6 +147,14 @@ export default function MesaView() {
     navigate("/");
   };
 
+  const handleCopyCode = () => {
+    if (id) {
+      navigator.clipboard.writeText(id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   const handleAddConsumption = () => {
     if (!selectedProduct || quantity < 1) return;
 
@@ -202,37 +211,159 @@ export default function MesaView() {
   };
 
   const exportToExcel = () => {
-    const wsData = [
-      ["Usuario", "Producto", "Precio Unitario ($)", "Cantidad", "Total ($)", "Detalles de División"]
+    // Función auxiliar para generar una "barra de progreso" de texto
+    const generateProgressBar = (value: number, total: number) => {
+      if (total === 0) return "";
+      const percentage = (value / total) * 100;
+      const filled = Math.round(percentage / 10);
+      return "█".repeat(filled) + "░".repeat(10 - filled) + ` ${percentage.toFixed(0)}%`;
+    };
+
+    // 1. Preparar datos de Resumen por Usuario
+    const userSummary = roomState.users.map(u => {
+      const ownItems = roomState.consumptions.filter(c => c.username === u.username);
+      const subtotalOwn = ownItems.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+      const othersPayingMe = ownItems.reduce((acc, c) => acc + (c.splits?.reduce((sAcc, s) => sAcc + s.amount, 0) || 0), 0);
+
+      const iAmPayingOthersItems = roomState.consumptions.filter(c => c.username !== u.username);
+      const iAmPayingOthersAmount = iAmPayingOthersItems.reduce((acc, c) => acc + (c.splits?.find(s => s.username === u.username)?.amount || 0), 0);
+
+      const finalTotal = subtotalOwn - othersPayingMe + iAmPayingOthersAmount;
+
+      // DESGLOSE DE CANTIDADES
+      // Calculamos cuánto "consumió" proporcionalmente de cada producto
+      const consumptionDetails: string[] = [];
+
+      // Sus productos propios (menos lo que le quitaron)
+      ownItems.forEach(c => {
+        const itemTotalAmount = c.price * c.quantity;
+        const itemSplitsAmount = c.splits?.reduce((acc, s) => acc + s.amount, 0) || 0;
+        const myPortionAmount = itemTotalAmount - itemSplitsAmount;
+        const myPortionQuantity = c.quantity * (myPortionAmount / itemTotalAmount);
+        if (myPortionQuantity > 0) {
+          consumptionDetails.push(`${myPortionQuantity.toFixed(2)}x ${c.name}`);
+        }
+      });
+
+      // Lo que pagó de otros
+      iAmPayingOthersItems.forEach(c => {
+        const mySplit = c.splits?.find(s => s.username === u.username);
+        if (mySplit) {
+          const itemTotalAmount = c.price * c.quantity;
+          const myPortionQuantity = c.quantity * (mySplit.amount / itemTotalAmount);
+          consumptionDetails.push(`${myPortionQuantity.toFixed(2)}x ${c.name} (Comp)`);
+        }
+      });
+
+      return {
+        usuario: u.username,
+        subtotalPropio: subtotalOwn,
+        descuentoPorCompartir: othersPayingMe,
+        deudaPorCompartir: iAmPayingOthersAmount,
+        totalUSD: finalTotal,
+        totalVES: finalTotal * tasaBcv,
+        detalles: consumptionDetails.join(", ")
+      };
+    });
+
+    // 2. Preparar datos de Resumen por Categoría
+    const categorySummary: { [key: string]: number } = {};
+    roomState.consumptions.forEach(c => {
+      const fullProduct = products.find(p => p.name === c.name || p.id === c.productId);
+      const cat = fullProduct?.product_category || "Otros";
+      categorySummary[cat] = (categorySummary[cat] || 0) + (c.price * c.quantity);
+    });
+
+    // 3. Crear el libro y las hojas
+    const wb = XLSX.utils.book_new();
+
+    // --- HOJA 1: RESUMEN GENERAL ---
+    const summaryData = [
+      ["REPORTE DE CONSUMO - DORE'S"],
+      [`Mesa: ${id}`, `Fecha: ${new Date().toLocaleDateString()}`],
+      [],
+      ["GRÁFICO DE DISTRIBUCIÓN POR PERSONA"],
+      ["Usuario", "Total ($)", "Distribución Visual"],
+    ];
+
+    userSummary.forEach(s => {
+      summaryData.push([
+        s.usuario,
+        s.totalUSD.toFixed(2),
+        generateProgressBar(s.totalUSD, totalUSD)
+      ]);
+    });
+
+    summaryData.push([]);
+    summaryData.push(["RESUMEN DE PAGOS DETALLADO"]);
+    summaryData.push(["Usuario", "Propio ($)", "Créditos ($)", "Debitos ($)", "Total ($)", "Total (Bs.)", "Desglose de Productos Consumidos"]);
+    userSummary.forEach(s => {
+      summaryData.push([
+        s.usuario,
+        s.subtotalPropio.toFixed(2),
+        s.descuentoPorCompartir.toFixed(2),
+        s.deudaPorCompartir.toFixed(2),
+        s.totalUSD.toFixed(2),
+        s.totalVES.toFixed(2),
+        s.detalles
+      ]);
+    });
+
+    summaryData.push([]);
+    summaryData.push(["TOTAL GENERAL DE LA MESA:", "", "", "", `$${totalUSD.toFixed(2)}`, `Bs. ${totalVES.toFixed(2)}`]);
+
+    summaryData.push([]);
+    summaryData.push(["GRÁFICO DE CONSUMO POR CATEGORÍA"]);
+    summaryData.push(["Categoría", "Monto ($)", "Distribución Visual"]);
+    Object.entries(categorySummary).forEach(([cat, amount]) => {
+      summaryData.push([cat, amount.toFixed(2), generateProgressBar(amount, totalUSD)]);
+    });
+
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+
+    // Ajustar anchos de columna para que se vea bien
+    wsSummary['!cols'] = [
+      { wch: 20 }, // Usuario / Categoría
+      { wch: 15 }, // Total
+      { wch: 25 }, // Gráfico Visual
+      { wch: 15 }, // Otros...
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 80 }  // Desglose (muy ancho)
+    ];
+
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Resumen y Gráficos");
+
+    // --- HOJA 2: DETALLE DE CONSUMOS ---
+    const detailData = [
+      ["DETALLE COMPLETO DE CONSUMOS"],
+      ["Usuario", "Producto", "Precio Unit ($)", "Cant", "Total ($)", "Desglose de Pago"]
     ];
 
     roomState.consumptions.forEach(item => {
-      const isShared = item.splits && item.splits.length > 0;
-      let details = "N/A";
-      const totalItemPrice = item.price * item.quantity;
-      if (isShared) {
+      const itemPriceTotal = item.price * item.quantity;
+      let details = "Total pagado por el dueño";
+
+      if (item.splits && item.splits.length > 0) {
         const totalSplits = item.splits!.reduce((acc, split) => acc + split.amount, 0);
-        const ownerAmount = totalItemPrice - totalSplits;
+        const ownerAmount = itemPriceTotal - totalSplits;
         details = `${item.username}: $${ownerAmount.toFixed(2)}, ` + item.splits!.map(s => `${s.username}: $${s.amount.toFixed(2)}`).join(', ');
       }
 
-      wsData.push([
+      detailData.push([
         item.username,
         item.name,
         item.price.toFixed(2),
         item.quantity.toString(),
-        totalItemPrice.toFixed(2),
+        itemPriceTotal.toFixed(2),
         details
       ]);
     });
 
-    const totalMesa = roomState.consumptions.reduce((acc, c) => acc + (c.price * c.quantity), 0);
-    wsData.push([]);
-    wsData.push(["", "", "", "TOTAL GENERAL:", `$${totalMesa.toFixed(2)}`, ""]);
+    const wsDetail = XLSX.utils.aoa_to_sheet(detailData);
+    XLSX.utils.book_append_sheet(wb, wsDetail, "Detalle");
 
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Consumos");
+    // 4. Exportar
     XLSX.writeFile(wb, `Reporte_Mesa_${id}.xlsx`);
   };
 
@@ -256,7 +387,7 @@ export default function MesaView() {
 
   const myTotalUSD = roomState.consumptions.reduce((sum, item) => {
     const totalItemPrice = (item.price || 0) * (item.quantity || 1);
-    
+
     if (item.username === username) {
       // Si el consumo es mío, pago el precio base menos lo que otros me están pagando
       const splitsPaidByOthers = item.splits?.reduce((acc, split) => acc + split.amount, 0) || 0;
@@ -292,11 +423,28 @@ export default function MesaView() {
               </button>
             )}
 
-            <div className="bg-gray-50 dark:bg-zinc-800/50 py-4 px-6 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 mt-4">
+            <div className="bg-gray-50 dark:bg-zinc-800/50 py-4 px-6 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 mt-4 relative group">
               <p className="text-sm text-gray-500 dark:text-zinc-400 font-bold mb-1">CÓDIGO DE INVITACIÓN</p>
-              <p className="text-4xl font-black tracking-widest text-gray-900 dark:text-white">
-                {id}
-              </p>
+              <div className="flex items-center justify-center gap-3">
+                <p className="text-4xl font-black tracking-widest text-gray-900 dark:text-white">
+                  {id}
+                </p>
+                <button
+                  onClick={handleCopyCode}
+                  className={`p-2 rounded-xl transition-all ${copied ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'}`}
+                  title="Copiar Código"
+                >
+                  {copied ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
             <button
               onClick={handleAbandonarMesa}
@@ -447,87 +595,176 @@ export default function MesaView() {
                   Aún no hay consumos registrados en esta mesa.
                 </div>
               ) : (
-                <div className="flex flex-col gap-3">
-                  {roomState.consumptions.map((item, index) => {
-                    const canModify = !roomState.isClosed && (isHost || item.username === username);
-                    const totalItemPrice = item.price * item.quantity;
-                    const totalSplits = item.splits?.reduce((acc, split) => acc + split.amount, 0) || 0;
-                    const canSplit = !roomState.isClosed && item.username !== username && totalSplits < totalItemPrice && (!item.splits || !item.splits.find(s => s.username === username));
-                    const ownerAmount = totalItemPrice - totalSplits;
-                    const isShared = item.splits && item.splits.length > 0;
-
+                <div className="flex flex-col gap-8">
+                  {/* Mis Consumos */}
+                  {(() => {
+                    const myItems = roomState.consumptions.filter(item =>
+                      item.username === username || item.splits?.some(s => s.username === username)
+                    );
+                    if (myItems.length === 0) return null;
                     return (
-                      <div key={item.id} className={`flex flex-col sm:flex-row justify-between sm:items-center p-4 rounded-xl border gap-3 transition-colors ${isShared ? 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30' : 'bg-gray-50 dark:bg-zinc-800/50 border-gray-100 dark:border-zinc-700/50'}`}>
-                        <div className="flex-1">
-                          <p className="font-bold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
-                            <span className={`px-2 py-0.5 rounded-md text-sm ${isShared ? 'bg-green-200 dark:bg-green-800' : 'bg-gray-200 dark:bg-zinc-700'}`}>{item.quantity}x</span>
-                            {item.name}
-                            {isShared && <span className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-xs px-2 py-0.5 rounded-full border border-green-200 dark:border-green-800" title="Consumo Compartido">🤝 Compartido</span>}
-                          </p>
-                          {isShared ? (
-                            <div className="mt-2 flex flex-col gap-1 border-l-2 border-green-300 dark:border-green-700 pl-3 py-1">
-                              <p className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-                                {item.username}: <span className="text-green-600 dark:text-green-400 font-bold">${ownerAmount.toFixed(2)}</span>
-                              </p>
-                              {item.splits!.map((split, i) => (
-                                <p key={i} className="text-sm text-gray-600 dark:text-zinc-400">
-                                  {split.username}: <span className="text-green-600 dark:text-green-400 font-bold">${split.amount.toFixed(2)}</span>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-black uppercase tracking-widest text-[#da1f26] bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded-full">Mis Consumos</span>
+                          <div className="h-[1px] flex-1 bg-gray-100 dark:bg-zinc-800"></div>
+                        </div>
+                        {myItems.map((item) => {
+                          const canModify = !roomState.isClosed && (isHost || item.username === username);
+                          const totalItemPrice = item.price * item.quantity;
+                          const totalSplits = item.splits?.reduce((acc, split) => acc + split.amount, 0) || 0;
+                          const canSplit = !roomState.isClosed && item.username !== username && totalSplits < totalItemPrice && (!item.splits || !item.splits.find(s => s.username === username));
+                          const ownerAmount = totalItemPrice - totalSplits;
+                          const isShared = item.splits && item.splits.length > 0;
+
+                          return (
+                            <div key={item.id} className={`flex flex-col sm:flex-row justify-between sm:items-center p-4 rounded-xl border gap-3 transition-colors ${isShared ? 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30' : 'bg-gray-50 dark:bg-zinc-800/50 border-gray-100 dark:border-zinc-700/50'}`}>
+                              <div className="flex-1">
+                                <p className="font-bold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
+                                  <span className={`px-2 py-0.5 rounded-md text-sm ${isShared ? 'bg-green-200 dark:bg-green-800' : 'bg-gray-200 dark:bg-zinc-700'}`}>{item.quantity}x</span>
+                                  {item.name}
+                                  {isShared && <span className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-xs px-2 py-0.5 rounded-full border border-green-200 dark:border-green-800" title="Consumo Compartido">🤝 Compartido</span>}
                                 </p>
-                              ))}
+                                {isShared ? (
+                                  <div className="mt-2 flex flex-col gap-1 border-l-2 border-green-300 dark:border-green-700 pl-3 py-1">
+                                    <p className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                                      {item.username}: <span className="text-green-600 dark:text-green-400 font-bold">${ownerAmount.toFixed(2)}</span>
+                                    </p>
+                                    {item.splits!.map((split, i) => (
+                                      <p key={i} className="text-sm text-gray-600 dark:text-zinc-400">
+                                        {split.username}: <span className="text-green-600 dark:text-green-400 font-bold">${split.amount.toFixed(2)}</span>
+                                      </p>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
+                                    Pedido por: <span className="font-semibold text-gray-700 dark:text-zinc-300">{item.username}</span>
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 border-gray-200 dark:border-zinc-700/50 pt-3 sm:pt-0">
+                                <div className="text-left sm:text-right">
+                                  <p className="font-black text-gray-900 dark:text-white text-xl leading-none mb-1">${(item.price * item.quantity).toFixed(2)}</p>
+                                  <p className="text-sm text-gray-500 dark:text-zinc-400 font-medium">Bs. {(item.price * item.quantity * tasaBcv).toFixed(2)}</p>
+                                </div>
+
+                                <div className="flex gap-2">
+                                  {canSplit && (
+                                    <button
+                                      onClick={() => {
+                                        setItemToSplit(item);
+                                        const totalItemPrice = item.price * item.quantity;
+                                        const available = totalItemPrice - (item.splits?.reduce((a, s) => a + s.amount, 0) || 0);
+                                        setSplitAmount(parseFloat((available / 2).toFixed(2)));
+                                      }}
+                                      className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
+                                      title="Pagar una parte"
+                                    >
+                                      <span className="text-xl">🤝</span>
+                                    </button>
+                                  )}
+                                  {canModify && (
+                                    <>
+                                      <button
+                                        onClick={() => setItemToEdit({ consumption: item, quantity: item.quantity })}
+                                        className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
+                                        title="Editar Cantidad"
+                                      >
+                                        <span className="text-lg">✏️</span>
+                                      </button>
+                                      <button
+                                        onClick={() => setItemToDelete(item)}
+                                        className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
+                                        title="Eliminar Consumo"
+                                      >
+                                        <span className="text-lg">🗑️</span>
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
-                              Pedido por: <span className="font-semibold text-gray-700 dark:text-zinc-300">{item.username}</span>
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 border-gray-200 dark:border-zinc-700/50 pt-3 sm:pt-0">
-                          <div className="text-left sm:text-right">
-                            <p className="font-black text-gray-900 dark:text-white text-xl leading-none mb-1">${(item.price * item.quantity).toFixed(2)}</p>
-                            <p className="text-sm text-gray-500 dark:text-zinc-400 font-medium">Bs. {(item.price * item.quantity * tasaBcv).toFixed(2)}</p>
-                          </div>
-
-                          {/* Acciones de modificación permanentes y adaptadas para móviles */}
-                          <div className="flex gap-2">
-                            {canSplit && (
-                              <button
-                                onClick={() => {
-                                  setItemToSplit(item);
-                                  const totalItemPrice = item.price * item.quantity;
-                                  const available = totalItemPrice - (item.splits?.reduce((a, s) => a + s.amount, 0) || 0);
-                                  // Default to half the available, maxing at 50 if available is huge, or just available
-                                  setSplitAmount(parseFloat((available / 2).toFixed(2)));
-                                }}
-                                className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
-                                title="Pagar una parte"
-                              >
-                                <span className="text-xl">🤝</span>
-                              </button>
-                            )}
-                            {canModify && (
-                              <>
-                                <button
-                                  onClick={() => setItemToEdit({ consumption: item, quantity: item.quantity })}
-                                  className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
-                                  title="Editar Cantidad"
-                                >
-                                  <span className="text-lg">✏️</span>
-                                </button>
-                                <button
-                                  onClick={() => setItemToDelete(item)}
-                                  className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
-                                  title="Eliminar Consumo"
-                                >
-                                  <span className="text-lg">🗑️</span>
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
+                          );
+                        })}
                       </div>
                     );
-                  })}
+                  })()}
+
+                  {/* Otros Consumos */}
+                  {(() => {
+                    const otherItems = roomState.consumptions.filter(item =>
+                      item.username !== username && !item.splits?.some(s => s.username === username)
+                    );
+                    if (otherItems.length === 0) return null;
+                    return (
+                      <div className="flex flex-col gap-3 opacity-80">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-black uppercase tracking-widest text-gray-500 bg-gray-50 dark:bg-zinc-800 px-3 py-1 rounded-full">Consumos de la Mesa</span>
+                          <div className="h-[1px] flex-1 bg-gray-100 dark:bg-zinc-800"></div>
+                        </div>
+                        {otherItems.map((item) => {
+                          //const canModify = !roomState.isClosed && (isHost || item.username === username);
+                          const totalItemPrice = item.price * item.quantity;
+                          const totalSplits = item.splits?.reduce((acc, split) => acc + split.amount, 0) || 0;
+                          const canSplit = !roomState.isClosed && item.username !== username && totalSplits < totalItemPrice && (!item.splits || !item.splits.find(s => s.username === username));
+                          const ownerAmount = totalItemPrice - totalSplits;
+                          const isShared = item.splits && item.splits.length > 0;
+
+                          return (
+                            <div key={item.id} className={`flex flex-col sm:flex-row justify-between sm:items-center p-4 rounded-xl border gap-3 transition-colors ${isShared ? 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30' : 'bg-gray-50 dark:bg-zinc-800/50 border-gray-100 dark:border-zinc-700/50'}`}>
+                              <div className="flex-1">
+                                <p className="font-bold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
+                                  <span className={`px-2 py-0.5 rounded-md text-sm ${isShared ? 'bg-green-200 dark:bg-green-800' : 'bg-gray-200 dark:bg-zinc-700'}`}>{item.quantity}x</span>
+                                  {item.name}
+                                  {isShared && <span className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-xs px-2 py-0.5 rounded-full border border-green-200 dark:border-green-800" title="Consumo Compartido">🤝 Compartido</span>}
+                                </p>
+                                {isShared ? (
+                                  <div className="mt-2 flex flex-col gap-1 border-l-2 border-green-300 dark:border-green-700 pl-3 py-1">
+                                    <p className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                                      {item.username}: <span className="text-green-600 dark:text-green-400 font-bold">${ownerAmount.toFixed(2)}</span>
+                                    </p>
+                                    {item.splits!.map((split, i) => (
+                                      <p key={i} className="text-sm text-gray-600 dark:text-zinc-400">
+                                        {split.username}: <span className="text-green-600 dark:text-green-400 font-bold">${split.amount.toFixed(2)}</span>
+                                      </p>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
+                                    Pedido por: <span className="font-semibold text-gray-700 dark:text-zinc-300">{item.username}</span>
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 border-gray-200 dark:border-zinc-700/50 pt-3 sm:pt-0">
+                                <div className="text-left sm:text-right">
+                                  <p className="font-black text-gray-900 dark:text-white text-xl leading-none mb-1">${(item.price * item.quantity).toFixed(2)}</p>
+                                  <p className="text-sm text-gray-500 dark:text-zinc-400 font-medium">Bs. {(item.price * item.quantity * tasaBcv).toFixed(2)}</p>
+                                </div>
+
+                                <div className="flex gap-2">
+                                  {canSplit && (
+                                    <button
+                                      onClick={() => {
+                                        setItemToSplit(item);
+                                        const totalItemPrice = item.price * item.quantity;
+                                        const available = totalItemPrice - (item.splits?.reduce((a, s) => a + s.amount, 0) || 0);
+                                        setSplitAmount(parseFloat((available / 2).toFixed(2)));
+                                      }}
+                                      className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
+                                      title="Pagar una parte"
+                                    >
+                                      <span className="text-xl">🤝</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>

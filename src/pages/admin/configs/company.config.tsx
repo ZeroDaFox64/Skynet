@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import moment from "moment";
-import { Chip } from "@heroui/react";
 import { Edit } from '../../../components/admin/actions';
 
 export const companyTableConfig = {

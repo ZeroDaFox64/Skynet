@@ -3,7 +3,7 @@ import { Button, Input } from "@heroui/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ROUTES } from "../../routes/routes";
+//import { ROUTES } from "../../routes/routes";
 import { authRule } from "../../rules/authRules";
 import { useNavigate } from "react-router";
 import { LoginFormInterface } from "../../interfaces/authInterface";
@@ -19,7 +19,7 @@ export default function App() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const router = ROUTES;
+  //const router = ROUTES;
   const { setUser, setSession } = authorizationStore();
 
   const {

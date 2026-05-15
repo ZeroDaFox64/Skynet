@@ -18,7 +18,7 @@ export default function SubscriptionsPage() {
 
   const navigate = useNavigate();
 
-  if (user?.rol !== "verified user" && user?.rol !== "superadmin") {
+  if (user?.role !== "verified user" && user?.role !== "superadmin") {
     navigate("/");
   }
 

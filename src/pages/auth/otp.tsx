@@ -17,7 +17,7 @@ export default function App() {
   const navigate = useNavigate();
 
   const verifyed = async () => {
-    if (user?.rol === "verified user") {
+    if (user?.role === "verified user") {
       toast.warning("Ya has verificado tu cuenta");
       return;
     }
@@ -56,7 +56,7 @@ export default function App() {
   };
 
   const resendCode = async () => {
-    if (user?.rol === "verified user") {
+    if (user?.role === "verified user") {
       toast.warning("Ya has verificado tu cuenta");
       return;
     }
@@ -102,7 +102,7 @@ export default function App() {
           <LogoLink route="/" />
         </div>
         <div className="flex flex-col items-center justify-center gap-5">
-          {user?.rol === "verified user" ? (
+          {user?.role === "verified user" ? (
             <>
               <GoShieldCheck size={100} className="mb-3" />
               <p className="text-3xl font-bold max-w-[400px] text-center">

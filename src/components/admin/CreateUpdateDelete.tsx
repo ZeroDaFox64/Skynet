@@ -5,7 +5,6 @@ import {
   Autocomplete,
   AutocompleteItem,
   Textarea,
-  NumberInput,
 } from "@heroui/react";
 import ConfirmModal from "../utils/ConfirmModal";
 import { toast } from "sonner";
@@ -129,47 +128,47 @@ export default function App({ formType = "add" }: { formType: string }) {
     try {
       const formData = new FormData();
 
-        // 1. Agregar campos simples
-    Object.entries(data).forEach(([key, value]) => {
-      if (!['features', 'images', 'front_image'].includes(key) && value !== undefined && value !== null) {
-        formData.append(key, value);
+      // 1. Agregar campos simples
+      Object.entries(data).forEach(([key, value]) => {
+        if (!['features', 'images', 'front_image'].includes(key) && value !== undefined && value !== null) {
+          formData.append(key, value);
+        }
+      });
+
+      // 2. Agregar features
+      if ('features' in data && Array.isArray(data.features)) {
+        formData.append('features', JSON.stringify(data.features));
       }
-    });
 
-    // 2. Agregar features
-    if ('features' in data && Array.isArray(data.features)) {
-      formData.append('features', JSON.stringify(data.features));
-    }
+      // 3. Agregar front_image
+      if (data.front_image) {
+        // Convertir a array si es FileList
+        const imagesArray = data.front_image instanceof FileList
+          ? Array.from(data.front_image)
+          : Array.isArray(data.front_image)
+            ? data.front_image
+            : [data.front_image];
 
-    // 3. Agregar front_image
-    if (data.front_image) {
-      // Convertir a array si es FileList
-      const imagesArray = data.front_image instanceof FileList 
-        ? Array.from(data.front_image) 
-        : Array.isArray(data.front_image) 
-          ? data.front_image 
-          : [data.front_image];
-      
-      // Cambia esta parte:
-      imagesArray.forEach((file) => {
-        formData.append('front_image', file); // ¡Clave sin índices!
-      });
-    }
+        // Cambia esta parte:
+        imagesArray.forEach((file) => {
+          formData.append('front_image', file); // ¡Clave sin índices!
+        });
+      }
 
-    // 4. Agregar imágenes múltiples
-    if (data.images) {
-      // Convertir a array si es FileList
-      const imagesArray = data.images instanceof FileList 
-        ? Array.from(data.images) 
-        : Array.isArray(data.images) 
-          ? data.images 
-          : [data.images];
-      
-      // Cambia esta parte:
-      imagesArray.forEach((file) => {
-        formData.append('images', file); // ¡Clave sin índices!
-      });
-    }
+      // 4. Agregar imágenes múltiples
+      if (data.images) {
+        // Convertir a array si es FileList
+        const imagesArray = data.images instanceof FileList
+          ? Array.from(data.images)
+          : Array.isArray(data.images)
+            ? data.images
+            : [data.images];
+
+        // Cambia esta parte:
+        imagesArray.forEach((file) => {
+          formData.append('images', file); // ¡Clave sin índices!
+        });
+      }
 
       const res = await api.post(`${endpoint}/register`, formData, {
         headers: {
