@@ -80,14 +80,7 @@ export default function MesaView() {
   // Obtener la tasa del BCV
   useEffect(() => {
     const fetchTasa = async () => {
-      try {
-        const res = await axios.get("https://ve.dolarapi.com/v1/dolares/oficial");
-        if (res.data && res.data.promedio) {
-          setTasaBcv(res.data.promedio);
-        }
-      } catch (error) {
-        console.error("Error al obtener la tasa del BCV:", error);
-      }
+      setTasaBcv(510);
     };
     fetchTasa();
   }, []);
