@@ -121,10 +121,6 @@ export default function App() {
             />
 
             <div className="flex justify-between items-center w-full mt-1">
-              <div className="flex items-center">
-                <input type="checkbox" id="remember" className="w-4 h-4 text-[#da1f26] dark:text-red-600 bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-600 rounded focus:ring-[#da1f26] focus:ring-offset-white dark:focus:ring-offset-zinc-900 transition-colors duration-300" />
-                <label htmlFor="remember" className="ml-2 text-sm text-gray-600 dark:text-zinc-400 font-medium transition-colors duration-300">Recordarme</label>
-              </div>
               <a href="#" className="text-sm font-bold text-[#da1f26] dark:text-red-400 hover:text-[#b3141b] dark:hover:text-red-300 transition-colors">
                 ¿Olvidó su contraseña?
               </a>

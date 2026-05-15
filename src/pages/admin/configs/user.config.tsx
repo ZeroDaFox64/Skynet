@@ -40,7 +40,7 @@ export const userTableConfig = {
         if (value === "admin")
           return (
             <Chip color="warning" variant="flat">
-              Admin
+              Administrador
             </Chip>
           );
         if (value === "verified user")
@@ -49,7 +49,7 @@ export const userTableConfig = {
               Verificado
             </Chip>
           );
-        if (value === "user") return <Chip variant="flat">No verificado</Chip>;
+        if (value === "user") return <Chip variant="flat">Usuario</Chip>;
       },
     },
     {
