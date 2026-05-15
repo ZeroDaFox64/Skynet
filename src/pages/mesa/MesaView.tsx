@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { socket } from "../landing/home";
 import { authorizationStore } from "../../store/authenticationStore";
-import axios from "axios";
+import { api } from "../../libs/api";
 import * as XLSX from 'xlsx';
 
 interface User {
@@ -97,8 +97,8 @@ export default function MesaView() {
     const fetchProducts = async () => {
       setIsLoadingProducts(true);
       try {
-        const res = await axios.get("http://localhost:4000/api/v1/product", { withCredentials: true });
-        const data = res.data;
+        const res = await api.get("/product");
+        const data = res.data || res;
         // Dependiendo de si responde con { products: [...] } o { data: [...] } o el array directo
         const productList = data.products || data.data || (Array.isArray(data) ? data : []);
         setProducts(productList);

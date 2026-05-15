@@ -7,11 +7,11 @@ import { v4 as uuidv4 } from "uuid";
 import { io } from "socket.io-client";
 import { authorizationStore } from "../../store/authenticationStore";
 
-// Constante para el servidor (idealmente usar variables de entorno)
-const SOCKET_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+// Usar la URL configurada en VITE_API_URL (quitando el sufijo /api/v1)
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1";
+const SOCKET_URL = API_URL.endsWith('/api/v1') ? API_URL.slice(0, -7) : API_URL;
 
-// Exportamos el socket por si otros componentes necesitan escucharlo directamente,
-// aunque lo ideal sería un contexto o store (Zustand).
+// Exportamos el socket por si otros componentes necesitan escucharlo directamente
 export const socket = io(SOCKET_URL, {
   withCredentials: true,
   autoConnect: false // Se conecta manualmente al unirse a una mesa
