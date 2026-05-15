@@ -6,6 +6,7 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { v4 as uuidv4 } from "uuid";
 import { io } from "socket.io-client";
 import { authorizationStore } from "../../store/authenticationStore";
+import ThemeSwitch from "../../components/ui/ThemeSwith";
 
 // Usar la URL configurada en VITE_API_URL y extraer SOLO el origen (https://dominio.com)
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1";
@@ -29,7 +30,26 @@ export default function Home() {
   const [code, setCode] = useState('');
   const navigate = useNavigate();
   const { user } = authorizationStore();
-  const username = user?.name || `Invitado_${Math.floor(Math.random() * 1000)}`;
+  const [customName, setCustomName] = useState(() => {
+    return localStorage.getItem('mesa_username') || user?.name || `Invitado_${Math.floor(Math.random() * 1000)}`;
+  });
+  
+  const [avatarSeed, setAvatarSeed] = useState(() => {
+    return localStorage.getItem('mesa_avatar_seed') || Math.random().toString(36).substring(7);
+  });
+
+  const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${avatarSeed}`;
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomName(e.target.value);
+    localStorage.setItem('mesa_username', e.target.value);
+  };
+
+  const randomizeAvatar = () => {
+    const newSeed = Math.random().toString(36).substring(7);
+    setAvatarSeed(newSeed);
+    localStorage.setItem('mesa_avatar_seed', newSeed);
+  };
 
   // 1. Persistencia Local (Recarga de página)
   useEffect(() => {
@@ -37,10 +57,11 @@ export default function Home() {
     if (savedMesaId) {
       console.log("Restaurando sesión de mesa:", savedMesaId);
       socket.connect();
-      socket.emit("join_mesa", { mesaId: savedMesaId, username });
+      const isHost = localStorage.getItem("is_host") === "true";
+      socket.emit("join_mesa", { mesaId: savedMesaId, username: customName, isHost, avatar: avatarUrl });
       // navigate(`/mesa/${savedMesaId}`); 
     }
-  }, [navigate, username]);
+  }, [navigate]);
 
   const handleCreateMesa = () => {
     // Generar un ID único corto para la mesa (ej: 6 caracteres)
@@ -52,7 +73,7 @@ export default function Home() {
 
     // Conectar socket y unirse a la sala
     socket.connect();
-    socket.emit("join_mesa", { mesaId: newMesaId, username });
+    socket.emit("join_mesa", { mesaId: newMesaId, username: customName, isHost: true, avatar: avatarUrl });
 
     console.log(`Mesa creada con ID: ${newMesaId}`);
     // Redirigir al usuario a la vista de la mesa
@@ -69,7 +90,7 @@ export default function Home() {
 
     // Conectar socket y unirse a la sala existente
     socket.connect();
-    socket.emit("join_mesa", { mesaId: joinCode, username });
+    socket.emit("join_mesa", { mesaId: joinCode, username: customName, isHost: false, avatar: avatarUrl });
 
     console.log(`Unido a mesa con código: ${joinCode}`);
     // Redirigir a la vista de la mesa
@@ -77,7 +98,10 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen font-sans bg-[#f9fafb] dark:bg-zinc-950 transition-colors duration-300">
+    <div className="flex min-h-screen font-sans bg-[#f9fafb] dark:bg-zinc-950 transition-colors duration-300 relative">
+      <div className="absolute top-4 right-4 z-[100] lg:top-8 lg:right-8">
+        <ThemeSwitch />
+      </div>
       {/* Left side: Image and Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center overflow-hidden bg-[#da1f26] dark:bg-[#9c1319]">
         {/* Placeholder image from Unsplash (Fried Chicken) */}
@@ -134,6 +158,37 @@ export default function Home() {
               <div className="w-full flex flex-col gap-8 transition-all duration-300">
                 <div className="place-content-start w-full">
                   <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight transition-colors duration-300">
+                    Tu Identidad
+                  </h3>
+                  <div className="flex items-center gap-4 mt-6 mb-8">
+                    <button 
+                      onClick={randomizeAvatar}
+                      title="Cambiar Avatar"
+                      className="relative group shrink-0"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-zinc-800 overflow-hidden border-2 border-transparent group-hover:border-[#da1f26] transition-colors">
+                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-white text-xs font-bold">↻</span>
+                      </div>
+                    </button>
+                    <div className="flex-1">
+                      <Input
+                        label="Nombre en la mesa"
+                        placeholder="Escribe tu nombre..."
+                        value={customName}
+                        onChange={handleNameChange}
+                        variant="faded"
+                        color="danger"
+                        classNames={{
+                          input: "font-semibold text-gray-800 dark:text-zinc-200"
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight transition-colors duration-300 mt-6">
                     ¿Qué deseas hacer?
                   </h3>
                   <p className="text-base text-gray-500 dark:text-zinc-400 mt-2 font-medium transition-colors duration-300">

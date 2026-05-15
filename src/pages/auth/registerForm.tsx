@@ -39,7 +39,7 @@ export default function App() {
 
     try {
       const res = await api.post("user/register", data);
-      
+
       if (res.status === 200) {
         toast.success("Usuario registrado correctamente");
         const token = await api.post("authentication/send-otp", { email: data.email });
@@ -182,20 +182,6 @@ export default function App() {
               label="Confirmar contraseña"
               type={showConfirmPassword ? "text" : "password"}
             />
-
-            <div className="flex items-center mt-1">
-              <Checkbox
-                size="sm"
-                isSelected={isSelected}
-                onValueChange={setIsSelected}
-                classNames={{
-                  wrapper: "before:border-[#da1f26] after:bg-[#da1f26]",
-                  label: "text-xs text-gray-600 dark:text-zinc-400 font-medium transition-colors duration-300",
-                }}
-              >
-                Acepto los <a href="#" className="text-[#da1f26] dark:text-red-400 font-bold hover:underline transition-colors">términos</a> y <a href="#" className="text-[#da1f26] dark:text-red-400 font-bold hover:underline transition-colors">políticas de uso interno</a>
-              </Checkbox>
-            </div>
 
             <div className="mt-2">
               <Button
