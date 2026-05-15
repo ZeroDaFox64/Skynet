@@ -13,6 +13,7 @@ import { api } from "../../libs/api";
 
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { FaRegEye, FaRegEyeSlash, FaEnvelope, FaLock, FaUserPlus, FaUser } from "react-icons/fa6";
+import { Button, Input } from "@heroui/react";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -183,10 +184,12 @@ export default function App() {
 
             <div className="mt-2">
               <Button
-                className="text-white font-bold text-lg bg-gray-900 dark:bg-zinc-800 shadow-xl shadow-gray-900/20 dark:shadow-black/40 hover:-translate-y-0.5 hover:bg-black dark:hover:bg-zinc-700 active:translate-y-0 active:scale-95 transition-all w-full h-12 rounded-xl"
+                className={`text-white font-bold text-lg bg-gray-900 dark:bg-zinc-800 shadow-xl shadow-gray-900/20 dark:shadow-black/40 hover:-translate-y-0.5 hover:bg-black dark:hover:bg-zinc-700 active:translate-y-0 active:scale-95 transition-all w-full h-12 rounded-xl ${!isSelected ? "opacity-70 cursor-not-allowed hover:translate-y-0 hover:bg-gray-900 dark:hover:bg-zinc-800 shadow-none" : ""
+                  }`}
                 size="lg"
                 isLoading={isLoading}
                 type="submit"
+
               >
                 ENVIAR SOLICITUD
               </Button>
