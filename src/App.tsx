@@ -12,6 +12,7 @@ import ProtectedRoute from "./layouts/ProtectedRoute";
 import { Toaster } from "sonner";
 import "./index.css";
 import Dashboard from "./components/admin/adminNav";
+import MesaView from "./pages/mesa/MesaView";
 import Update from "./pages/admin/options/update";
 import Add from "./pages/admin/options/add";
 import View from "./pages/admin/options/view";
@@ -25,6 +26,7 @@ export default function App() {
           {/* Rutas públicas */}
           <Route path="*" element={<NotFound />} />
           <Route path={ROUTES.HOME} element={<Home />} />
+          <Route path={ROUTES.MESA} element={<MesaView />} />
           <Route
             path={`/${ROUTES.LOGIN}`}
             element={<LoginPage />}

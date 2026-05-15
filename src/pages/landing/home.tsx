@@ -1,20 +1,72 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { Button, Input } from "@heroui/react";
 import { FaPlus, FaUsers, FaHashtag, FaArrowRight } from "react-icons/fa6";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { v4 as uuidv4 } from "uuid";
+import { io } from "socket.io-client";
+import { authorizationStore } from "../../store/authenticationStore";
+
+// Constante para el servidor (idealmente usar variables de entorno)
+const SOCKET_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+
+// Exportamos el socket por si otros componentes necesitan escucharlo directamente,
+// aunque lo ideal sería un contexto o store (Zustand).
+export const socket = io(SOCKET_URL, {
+  withCredentials: true,
+  autoConnect: false // Se conecta manualmente al unirse a una mesa
+});
 
 export default function Home() {
   const [view, setView] = useState<'options' | 'join'>('options');
   const [code, setCode] = useState('');
+  const navigate = useNavigate();
+  const { user } = authorizationStore();
+  const username = user?.name || `Invitado_${Math.floor(Math.random() * 1000)}`;
+
+  // 1. Persistencia Local (Recarga de página)
+  useEffect(() => {
+    const savedMesaId = localStorage.getItem("mesa_id");
+    if (savedMesaId) {
+      console.log("Restaurando sesión de mesa:", savedMesaId);
+      socket.connect();
+      socket.emit("join_mesa", { mesaId: savedMesaId, username });
+      // navigate(`/mesa/${savedMesaId}`); 
+    }
+  }, [navigate, username]);
 
   const handleCreateMesa = () => {
-    // Logic to create mesa
-    console.log("Crear mesa");
+    // Generar un ID único corto para la mesa (ej: 6 caracteres)
+    const newMesaId = uuidv4().slice(0, 6).toUpperCase();
+    
+    // Guardar estado de pertenencia y rol localmente
+    localStorage.setItem("mesa_id", newMesaId);
+    localStorage.setItem("is_host", "true");
+    
+    // Conectar socket y unirse a la sala
+    socket.connect();
+    socket.emit("join_mesa", { mesaId: newMesaId, username });
+    
+    console.log(`Mesa creada con ID: ${newMesaId}`);
+    // Redirigir al usuario a la vista de la mesa
+    navigate(`/mesa/${newMesaId}`);
   };
 
   const handleJoinMesa = () => {
-    // Logic to join mesa
-    console.log("Unirse a mesa con código:", code);
+    if (!code.trim()) return;
+    const joinCode = code.trim().toUpperCase();
+
+    // Guardar estado de pertenencia y rol localmente
+    localStorage.setItem("mesa_id", joinCode);
+    localStorage.setItem("is_host", "false");
+    
+    // Conectar socket y unirse a la sala existente
+    socket.connect();
+    socket.emit("join_mesa", { mesaId: joinCode, username });
+    
+    console.log(`Unido a mesa con código: ${joinCode}`);
+    // Redirigir a la vista de la mesa
+    navigate(`/mesa/${joinCode}`);
   };
 
   return (

@@ -1,6 +1,7 @@
 export const ROUTES = {
   // HOME
   HOME: '/',
+  MESA: '/mesa/:id',
   LINK_TREE: '/social-links',
   TERMS: '/conditions',
   AUTH: 'authentication',
