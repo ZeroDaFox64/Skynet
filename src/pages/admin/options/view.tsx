@@ -48,6 +48,7 @@ export default function App() {
   const maintenance = searchParams.get("maintenance") || "";
   const availability = searchParams.get("availability") || "";
   const rol = searchParams.get("rol") || "";
+  const category = searchParams.get("category") || "";
   const filters = searchParams.get("filters") || "";
 
   const [urlParams, setUrlParams] = useState({
@@ -61,6 +62,7 @@ export default function App() {
     availability,
     status,
     rol,
+    category,
     filters,
   });
 
@@ -88,6 +90,7 @@ export default function App() {
           maintenance: urlParams.maintenance,
           availability: urlParams.availability,
           rol: urlParams.rol,
+          category: urlParams.category,
           filters: urlParams.filters,
         },
       });
@@ -132,6 +135,7 @@ export default function App() {
       maintenance: searchParams.get("maintenance") || "",
       availability: searchParams.get("availability") || "",
       rol: searchParams.get("rol") || "",
+      category: searchParams.get("category") || "",
       filters: searchParams.get("filters") || "",
     };
 
@@ -146,6 +150,7 @@ export default function App() {
       maintenance: newParams.maintenance,
       availability: newParams.availability,
       rol: newParams.rol,
+      category: newParams.category,
       filters: newParams.filters,
     }));
 
@@ -159,6 +164,7 @@ export default function App() {
       maintenance: newParams.maintenance,
       availability: newParams.availability,
       rol: newParams.rol,
+      category: newParams.category,
       filters: newParams.filters,
     });
   }, [searchParams]);
@@ -176,6 +182,7 @@ export default function App() {
     urlParamsValue.maintenance,
     urlParamsValue.availability,
     urlParamsValue.rol,
+    urlParamsValue.category,
     urlParamsValue.filters,
     entity,
   ]);

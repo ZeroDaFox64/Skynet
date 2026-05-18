@@ -120,11 +120,6 @@ export default function App() {
               type={showPassword ? "text" : "password"}
             />
 
-            <div className="flex justify-between items-center w-full mt-1">
-              <a href="#" className="text-sm font-bold text-[#da1f26] dark:text-red-400 hover:text-[#b3141b] dark:hover:text-red-300 transition-colors">
-                ¿Olvidó su contraseña?
-              </a>
-            </div>
 
             <div className="mt-4">
               <Button

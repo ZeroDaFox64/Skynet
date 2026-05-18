@@ -36,6 +36,7 @@ interface Consumption {
   price: number;
   quantity: number;
   username: string;
+  note?: string;
   splits?: Split[];
 }
 
@@ -61,9 +62,11 @@ export default function MesaView() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [detailProduct, setDetailProduct] = useState<any | null>(null);
   const [itemToDelete, setItemToDelete] = useState<Consumption | null>(null);
-  const [itemToEdit, setItemToEdit] = useState<{ consumption: Consumption, quantity: number } | null>(null);
+  const [itemToEdit, setItemToEdit] = useState<{ consumption: Consumption, quantity: number, note?: string } | null>(null);
+  const [selectedNote, setSelectedNote] = useState<{ name: string, note: string } | null>(null);
   const [itemToSplit, setItemToSplit] = useState<Consumption | null>(null);
   const [splitAmount, setSplitAmount] = useState<number>(0);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [showAbandonModal, setShowAbandonModal] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -97,7 +100,7 @@ export default function MesaView() {
     const fetchProducts = async () => {
       setIsLoadingProducts(true);
       try {
-        const res = await api.get("/product");
+        const res = await api.get("/product/all");
         const data = res.data || res;
         // Dependiendo de si responde con { products: [...] } o { data: [...] } o el array directo
         const productList = data.products || data.data || (Array.isArray(data) ? data : []);
@@ -148,9 +151,19 @@ export default function MesaView() {
       navigate("/");
     });
 
+    // Escuchar si hay un error al unirse (ej. mesa sin host)
+    socket.on("join_error", (data) => {
+      toast.error(data.message);
+      localStorage.removeItem("mesa_id");
+      localStorage.removeItem(`mesa_state`);
+      socket.disconnect();
+      navigate("/");
+    });
+
     return () => {
       socket.off("room_state_update");
       socket.off("mesa_destroyed");
+      socket.off("join_error");
     };
   }, [id, username, isHost, navigate]);
 
@@ -205,8 +218,8 @@ export default function MesaView() {
     setItemToDelete(null);
   };
 
-  const handleUpdateQuantity = (consumoId: string, newQuantity: number) => {
-    socket.emit("UPDATE_QUANTITY", { mesaId: id, consumoId, newQuantity });
+  const handleUpdateItem = (consumoId: string, newQuantity: number, newNote?: string) => {
+    socket.emit("UPDATE_ITEM", { mesaId: id, consumoId, newQuantity, newNote });
     setItemToEdit(null);
   };
 
@@ -277,8 +290,10 @@ export default function MesaView() {
         subtotalPropio: subtotalOwn,
         descuentoPorCompartir: othersPayingMe,
         deudaPorCompartir: iAmPayingOthersAmount,
-        totalUSD: finalTotal,
-        totalVES: finalTotal * tasaBcv,
+        baseUSD: finalTotal,
+        ivaUSD: finalTotal * 0.16,
+        totalUSD: finalTotal * 1.16,
+        totalVES: (finalTotal * 1.16) * tasaBcv,
         detalles: consumptionDetails.join(", ")
       };
     });
@@ -313,13 +328,15 @@ export default function MesaView() {
 
     summaryData.push([]);
     summaryData.push(["RESUMEN DE PAGOS DETALLADO"]);
-    summaryData.push(["Usuario", "Propio ($)", "Créditos ($)", "Debitos ($)", "Total ($)", "Total (Bs.)", "Desglose de Productos Consumidos"]);
+    summaryData.push(["Usuario", "Propio ($)", "Créditos ($)", "Debitos ($)", "Subtotal ($)", "IVA 16% ($)", "Total ($)", "Total (Bs.)", "Desglose de Productos Consumidos"]);
     userSummary.forEach(s => {
       summaryData.push([
         s.usuario,
         s.subtotalPropio.toFixed(2),
         s.descuentoPorCompartir.toFixed(2),
         s.deudaPorCompartir.toFixed(2),
+        s.baseUSD.toFixed(2),
+        s.ivaUSD.toFixed(2),
         s.totalUSD.toFixed(2),
         s.totalVES.toFixed(2),
         s.detalles
@@ -327,7 +344,9 @@ export default function MesaView() {
     });
 
     summaryData.push([]);
-    summaryData.push(["TOTAL GENERAL DE LA MESA:", "", "", "", `$${totalUSD.toFixed(2)}`, `Bs. ${totalVES.toFixed(2)}`]);
+    summaryData.push(["SUBTOTAL GENERAL:", "", "", "", `$${subtotalUSD.toFixed(2)}`]);
+    summaryData.push(["IVA (16%):", "", "", "", "", `$${ivaUSD.toFixed(2)}`]);
+    summaryData.push(["TOTAL GENERAL DE LA MESA:", "", "", "", "", "", `$${totalUSD.toFixed(2)}`, `Bs. ${totalVES.toFixed(2)}`]);
 
     summaryData.push([]);
     summaryData.push(["GRÁFICO DE CONSUMO POR CATEGORÍA"]);
@@ -341,11 +360,13 @@ export default function MesaView() {
     // Ajustar anchos de columna para que se vea bien
     wsSummary['!cols'] = [
       { wch: 20 }, // Usuario / Categoría
-      { wch: 15 }, // Total
-      { wch: 25 }, // Gráfico Visual
-      { wch: 15 }, // Otros...
-      { wch: 15 },
-      { wch: 15 },
+      { wch: 15 }, // Propio
+      { wch: 15 }, // Créditos
+      { wch: 15 }, // Debitos
+      { wch: 15 }, // Subtotal
+      { wch: 15 }, // IVA
+      { wch: 15 }, // Total USD
+      { wch: 15 }, // Total Bs
       { wch: 80 }  // Desglose (muy ancho)
     ];
 
@@ -354,11 +375,13 @@ export default function MesaView() {
     // --- HOJA 2: DETALLE DE CONSUMOS ---
     const detailData = [
       ["DETALLE COMPLETO DE CONSUMOS"],
-      ["Usuario", "Producto", "Precio Unit ($)", "Cant", "Total ($)", "Desglose de Pago"]
+      ["Usuario", "Producto", "Precio Unit Base ($)", "Cant", "Subtotal ($)", "IVA 16% ($)", "Total con IVA ($)", "Desglose de Pago"]
     ];
 
     roomState.consumptions.forEach(item => {
       const itemPriceTotal = item.price * item.quantity;
+      const itemIva = itemPriceTotal * 0.16;
+      const itemGrandTotal = itemPriceTotal + itemIva;
       let details = "Total pagado por el dueño";
 
       if (item.splits && item.splits.length > 0) {
@@ -373,6 +396,8 @@ export default function MesaView() {
         item.price.toFixed(2),
         item.quantity.toString(),
         itemPriceTotal.toFixed(2),
+        itemIva.toFixed(2),
+        itemGrandTotal.toFixed(2),
         details
       ]);
     });
@@ -384,8 +409,8 @@ export default function MesaView() {
     XLSX.writeFile(wb, `Reporte_Mesa_${id}.xlsx`);
   };
 
-  // Extraer categorías únicas dinámicamente de los productos disponibles
-  const categories = Array.from(new Set(products.map(p => p.product_category))).filter(Boolean);
+  // Categorías fijas de la base de datos para que siempre aparezcan los botones
+  const categories = ['bebida', 'hamburguesa', 'pollo', 'pizza', 'postre', 'otros'];
 
   const getCategoryEmoji = (cat: string) => {
     switch (cat.toLowerCase()) {
@@ -399,10 +424,12 @@ export default function MesaView() {
   };
 
   // Cálculos de total considerando la cantidad
-  const totalUSD = roomState.consumptions.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+  const subtotalUSD = roomState.consumptions.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+  const ivaUSD = subtotalUSD * 0.16;
+  const totalUSD = subtotalUSD + ivaUSD;
   const totalVES = totalUSD * tasaBcv;
 
-  const myTotalUSD = roomState.consumptions.reduce((sum, item) => {
+  const mySubtotalUSD = roomState.consumptions.reduce((sum, item) => {
     const totalItemPrice = (item.price || 0) * (item.quantity || 1);
 
     if (item.username === username) {
@@ -415,6 +442,8 @@ export default function MesaView() {
       return sum + (mySplit ? mySplit.amount : 0);
     }
   }, 0);
+  const myIvaUSD = mySubtotalUSD * 0.16;
+  const myTotalUSD = mySubtotalUSD + myIvaUSD;
   const myTotalVES = myTotalUSD * tasaBcv;
 
   return (
@@ -449,21 +478,32 @@ export default function MesaView() {
                 <p className="text-4xl font-black tracking-widest text-gray-900 dark:text-white">
                   {id}
                 </p>
-                <button
-                  onClick={handleCopyCode}
-                  className={`p-2 rounded-xl transition-all ${copied ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'}`}
-                  title="Copiar Código"
-                >
-                  {copied ? (
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={handleCopyCode}
+                    className={`p-2 rounded-xl transition-all ${copied ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600'}`}
+                    title="Copiar Código"
+                  >
+                    {copied ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      </svg>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="p-2 rounded-xl transition-all bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 hover:bg-gray-300 dark:hover:bg-zinc-600"
+                    title="Compartir"
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                    </svg>
-                  )}
-                </button>
+                  </button>
+                </div>
               </div>
             </div>
             <button
@@ -674,10 +714,20 @@ export default function MesaView() {
                               <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 border-gray-200 dark:border-zinc-700/50 pt-3 sm:pt-0">
                                 <div className="text-left sm:text-right">
                                   <p className="font-black text-gray-900 dark:text-white text-xl leading-none mb-1">${(item.price * item.quantity).toFixed(2)}</p>
-                                  <p className="text-sm text-gray-500 dark:text-zinc-400 font-medium">Bs. {(item.price * item.quantity * tasaBcv).toFixed(2)}</p>
+                                  <p className="text-xs text-gray-400 dark:text-zinc-500 font-medium">+ IVA: ${(item.price * item.quantity * 0.16).toFixed(2)}</p>
+                                  <p className="text-sm text-gray-500 dark:text-zinc-400 font-medium">Bs. {(item.price * item.quantity * 1.16 * tasaBcv).toFixed(2)}</p>
                                 </div>
 
                                 <div className="flex gap-2">
+                                  {item.note && (
+                                    <button
+                                      onClick={() => setSelectedNote({ name: item.name, note: item.note! })}
+                                      className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
+                                      title="Ver Nota"
+                                    >
+                                      <span className="text-xl">📝</span>
+                                    </button>
+                                  )}
                                   {canSplit && (
                                     <button
                                       onClick={() => {
@@ -695,9 +745,9 @@ export default function MesaView() {
                                   {canModify && (
                                     <>
                                       <button
-                                        onClick={() => setItemToEdit({ consumption: item, quantity: item.quantity })}
+                                        onClick={() => setItemToEdit({ consumption: item, quantity: item.quantity, note: item.note })}
                                         className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
-                                        title="Editar Cantidad"
+                                        title="Editar Pedido"
                                       >
                                         <span className="text-lg">✏️</span>
                                       </button>
@@ -768,10 +818,20 @@ export default function MesaView() {
                               <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 border-gray-200 dark:border-zinc-700/50 pt-3 sm:pt-0">
                                 <div className="text-left sm:text-right">
                                   <p className="font-black text-gray-900 dark:text-white text-xl leading-none mb-1">${(item.price * item.quantity).toFixed(2)}</p>
-                                  <p className="text-sm text-gray-500 dark:text-zinc-400 font-medium">Bs. {(item.price * item.quantity * tasaBcv).toFixed(2)}</p>
+                                  <p className="text-xs text-gray-400 dark:text-zinc-500 font-medium">+ IVA: ${(item.price * item.quantity * 0.16).toFixed(2)}</p>
+                                  <p className="text-sm text-gray-500 dark:text-zinc-400 font-medium">Bs. {(item.price * item.quantity * 1.16 * tasaBcv).toFixed(2)}</p>
                                 </div>
 
                                 <div className="flex gap-2">
+                                  {item.note && (
+                                    <button
+                                      onClick={() => setSelectedNote({ name: item.name, note: item.note! })}
+                                      className="w-11 h-11 flex items-center justify-center bg-white dark:bg-zinc-800 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 active:scale-95 transition-all"
+                                      title="Ver Nota"
+                                    >
+                                      <span className="text-xl">📝</span>
+                                    </button>
+                                  )}
                                   {canSplit && (
                                     <button
                                       onClick={() => {
@@ -800,14 +860,22 @@ export default function MesaView() {
 
             <div className="mt-auto pt-6 border-t-2 border-gray-100 dark:border-zinc-800 flex flex-col gap-4">
               <div className="flex justify-between items-center bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-gray-100 dark:border-zinc-700/50">
-                <p className="text-lg font-bold text-gray-500 dark:text-zinc-400">Total de la Mesa</p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-bold text-gray-500 dark:text-zinc-400">Subtotal Mesa: ${subtotalUSD.toFixed(2)}</p>
+                  <p className="text-sm font-bold text-gray-400 dark:text-zinc-500">IVA (16%): ${ivaUSD.toFixed(2)}</p>
+                  <p className="text-lg font-black text-gray-800 dark:text-zinc-200 mt-1">Total Mesa</p>
+                </div>
                 <div className="text-right">
                   <p className="text-2xl font-black text-gray-800 dark:text-zinc-200 leading-none">${totalUSD.toFixed(2)}</p>
                   <p className="text-sm font-bold text-gray-500 dark:text-zinc-400 mt-1">Bs. {totalVES.toFixed(2)}</p>
                 </div>
               </div>
-              <div className="flex justify-between items-end px-2">
-                <p className="text-xl font-bold text-gray-500 dark:text-zinc-400">Mi Cuenta</p>
+              <div className="flex justify-between items-end px-2 mt-2">
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-bold text-gray-500 dark:text-zinc-400">Mi Subtotal: ${mySubtotalUSD.toFixed(2)}</p>
+                  <p className="text-sm font-bold text-gray-400 dark:text-zinc-500">Mi IVA (16%): ${myIvaUSD.toFixed(2)}</p>
+                  <p className="text-xl font-black text-[#da1f26] dark:text-[#f87171] mt-1">Mi Cuenta</p>
+                </div>
                 <div className="text-right">
                   <p className="text-5xl font-black text-[#da1f26] dark:text-[#f87171] leading-none mb-2">${myTotalUSD.toFixed(2)}</p>
                   <p className="text-xl font-bold text-gray-600 dark:text-zinc-300">Bs. {myTotalVES.toFixed(2)}</p>
@@ -887,6 +955,52 @@ export default function MesaView() {
         </div>
       )}
 
+      {/* Modal para Compartir Mesa */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-zinc-800">
+            <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+              🔗
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3">Invita a tus amigos</h3>
+            <p className="text-gray-500 dark:text-zinc-400 mb-6 leading-relaxed font-medium">
+              Comparte este código o escanea el QR para unirte a la mesa:
+            </p>
+            
+            <div className="flex flex-col items-center justify-center mb-6">
+              <div className="bg-white p-2 rounded-2xl shadow-sm mb-4 border border-gray-200">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent("https://japan-gallery.onrender.com")}`} 
+                  alt="QR Code" 
+                  className="w-40 h-40 rounded-xl"
+                />
+              </div>
+              <p className="text-3xl font-black tracking-widest text-gray-900 dark:text-white bg-gray-100 dark:bg-zinc-800 py-2 px-6 rounded-2xl">
+                {id}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`¡Únete a mi mesa en nuestro restaurante!\n\n🌐 Enlace: https://japan-gallery.onrender.com\n🔑 Código de Mesa: ${id}`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-3.5 font-bold text-white bg-[#25D366] hover:bg-[#128C7E] rounded-xl shadow-lg transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="w-6 h-6 fill-current"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zM223.9 413.2c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 334.1l-4.4-7.1c-18.9-30-28.8-64.5-28.8-101.2 0-103 83.8-186.8 186.8-186.8 54.7 0 106.2 21.3 144.9 60.1 38.7 38.7 60.1 90.2 60.1 144.9 0 102.9-83.8 186.8-186.7 186.8zm102.6-140.2c-5.6-2.8-33.3-16.5-38.4-18.4-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.4 18.4-17.7 22.2-3.3 3.7-6.5 4.2-12.1 1.4-5.6-2.8-23.7-8.8-45.2-28.1-16.6-14.9-27.8-33.4-31.1-39-3.3-5.6-.3-8.6 2.5-11.4 2.5-2.5 5.6-6.5 8.4-9.8 2.8-3.3 3.7-5.6 5.6-9.3 1.9-3.7 .9-7-4-10-5.1-6-12.1-30.7-16.5-42-4.3-11.1-8.7-9.6-12.5-9.8-3.7-.2-8.3-.2-12.1-.2-4.6 0-12.1 1.7-18.4 8.6-6.3 6.9-24.2 23.7-24.2 57.7s24.7 66.8 28.1 71.4c3.3 4.6 48.6 74.2 117.8 104.1 16.5 7.1 29.3 11.4 39.3 14.6 16.6 5.3 31.7 4.5 43.6 2.7 13.4-2 41.2-16.8 46.9-33 5.6-16.2 5.6-30.1 4-33-1.6-3-6-4.6-11.6-7.4z"/></svg>
+                Compartir por WhatsApp
+              </a>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="w-full py-3.5 font-bold text-gray-700 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal para Cerrar Mesa */}
       {showCloseModal && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -919,18 +1033,42 @@ export default function MesaView() {
         </div>
       )}
 
-      {/* Modal para Ajustar Cantidad */}
+      {/* Modal para Ver Nota */}
+      {selectedNote && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-zinc-800">
+            <div className="w-20 h-20 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+              📝
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Nota del Pedido</h3>
+            <p className="text-gray-500 dark:text-zinc-400 mb-6 font-bold text-lg">
+              {selectedNote.name}
+            </p>
+            <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-2xl border border-yellow-100 dark:border-yellow-900/30 mb-6 text-left">
+              <p className="text-gray-800 dark:text-zinc-200 italic font-medium">"{selectedNote.note}"</p>
+            </div>
+            <button
+              onClick={() => setSelectedNote(null)}
+              className="w-full py-3.5 font-bold text-gray-700 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Modificar Pedido */}
       {itemToEdit && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-zinc-800">
             <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
               ✏️
             </div>
-            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Ajustar Cantidad</h3>
-            <p className="text-gray-500 dark:text-zinc-400 mb-8 font-bold text-lg">
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Modificar Pedido</h3>
+            <p className="text-gray-500 dark:text-zinc-400 mb-6 font-bold text-lg">
               {itemToEdit.consumption.name}
             </p>
-            <div className="flex items-center justify-center gap-6 mb-8 bg-gray-50 dark:bg-zinc-800/50 py-4 rounded-2xl border border-gray-100 dark:border-zinc-800">
+            <div className="flex items-center justify-center gap-6 mb-4 bg-gray-50 dark:bg-zinc-800/50 py-4 rounded-2xl border border-gray-100 dark:border-zinc-800">
               <button
                 onClick={() => setItemToEdit(prev => prev && { ...prev, quantity: Math.max(1, prev.quantity - 1) })}
                 className="w-14 h-14 bg-white dark:bg-zinc-700 text-3xl text-gray-900 dark:text-white font-bold rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-600 shadow-sm border border-gray-200 dark:border-zinc-600 transition-colors"
@@ -945,6 +1083,16 @@ export default function MesaView() {
                 +
               </button>
             </div>
+            
+            <div className="mb-6">
+              <textarea
+                placeholder="Añadir una nota (ej. Sin cebolla, extra queso...)"
+                value={itemToEdit.note || ""}
+                onChange={(e) => setItemToEdit(prev => prev && { ...prev, note: e.target.value })}
+                className="w-full border-2 border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50 text-gray-900 dark:text-white p-3 rounded-xl focus:border-blue-500 focus:outline-none transition-colors resize-none h-24"
+              />
+            </div>
+
             <div className="flex gap-4">
               <button
                 onClick={() => setItemToEdit(null)}
@@ -953,7 +1101,7 @@ export default function MesaView() {
                 Cancelar
               </button>
               <button
-                onClick={() => handleUpdateQuantity(itemToEdit.consumption.id, itemToEdit.quantity)}
+                onClick={() => handleUpdateItem(itemToEdit.consumption.id, itemToEdit.quantity, itemToEdit.note)}
                 className="flex-1 py-3.5 font-bold text-white bg-[#da1f26] hover:bg-[#b3141b] rounded-xl shadow-lg transition-colors"
               >
                 Guardar

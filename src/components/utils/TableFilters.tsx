@@ -104,11 +104,12 @@ const product = [
     paramName: "category",
     defaultValue: "",
     options: [
-      { label: "Manga", value: "manga" },
-      { label: "Figuras", value: "figures" },
-      { label: "Posters", value: "posters" },
-      { label: "Ropa", value: "clothing" },
-      { label: "Otros", value: "others" },
+      { label: "Bebida", value: "bebida" },
+      { label: "Hamburguesa", value: "hamburguesa" },
+      { label: "Pollo", value: "pollo" },
+      { label: "Pizza", value: "pizza" },
+      { label: "Postre", value: "postre" },
+      { label: "Otros", value: "otros" },
     ],
   }
 ]
