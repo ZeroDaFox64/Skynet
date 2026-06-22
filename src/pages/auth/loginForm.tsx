@@ -35,17 +35,18 @@ export default function App() {
 
     try {
       const res = await handleAttemptLoginOnRegister(dataLogin);
-      if (res.status === 200) {
-        toast.success(`Bienvenido de nuevo ${res.data.user.username}!!`);
+      if (res?.status === 200) {
+        toast.success(`Bienvenido de nuevo ${res.data.user.name || res.data.user.email}!!`);
         setUser(res.data.user);
         setSession(res.data.token);
         window.location.replace("/dashboard");
-      } else if (res.status === 400) {
-        toast.error(res.data.message);
-      } else if (res.status === 404) {
+      } else if (res?.status === 400) {
+        toast.error(res.data.message || "Credenciales incorrectas");
+      } else if (res?.status === 404) {
         toast.error("Usuario no encontrado");
+      } else {
+        toast.error("Ocurrió un error al iniciar sesión.");
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err: any) {
       toast.error(
         "Ocurrió un error inesperado. Por favor, inténtalo de nuevo."

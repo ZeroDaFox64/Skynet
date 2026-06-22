@@ -30,7 +30,7 @@ export const changeUsernameRule = z.object({
 export const registerRule = z
   .object({
     email: z.string().email({ message: "Correo Electrónico no válido" }),
-    username: z
+    name: z
       .string()
       .min(1, { message: "El nombre de usuario es obligatorio" }),
     password: z

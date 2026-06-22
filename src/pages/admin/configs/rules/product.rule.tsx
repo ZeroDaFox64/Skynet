@@ -24,6 +24,6 @@ export const productRule = z.object({
   // Opcionales
   description: z
     .string()
-    .optional(),
-  front_image: z.string().optional(),
+    .nullish(),
+  front_image: z.string().nullish(),
 });

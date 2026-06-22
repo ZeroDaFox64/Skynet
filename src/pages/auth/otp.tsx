@@ -12,7 +12,7 @@ import { GoShieldLock, GoShieldCheck } from "react-icons/go";
 export default function App() {
   const [otp, setOtp] = useState(null);
   const [otpTimeout, setOtpTimeout] = useState(false);
-  const { user, setUser } = authorizationStore();
+  const { user, setUser, otp: storeOtpToken, setOtp: setStoreOtpToken } = authorizationStore();
 
   const navigate = useNavigate();
 
@@ -26,6 +26,7 @@ export default function App() {
       const res = await api.post("/authentication/verify-otp", {
         otp: otp,
         email: user?.email,
+        token: storeOtpToken,
       });
 
       if (res.status === 200) {
@@ -67,6 +68,9 @@ export default function App() {
       });
       if (res.status === 200) {
         setOtpTimeout(true);
+        if (res.data.token) {
+          setStoreOtpToken(res.data.token);
+        }
         toast.success(res.data.message);
       } else {
         toast.error(res.data.message);

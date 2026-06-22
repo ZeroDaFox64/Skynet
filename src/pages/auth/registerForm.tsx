@@ -39,7 +39,7 @@ export default function App() {
     try {
       const res = await api.post("user/register", data);
 
-      if (res.status === 200) {
+      if (res.status === 201 || res.status === 200) {
         toast.success("Usuario registrado correctamente");
         const token = await api.post("authentication/send-otp", { email: data.email });
         const resLogin = await handleAttemptLoginOnRegister({

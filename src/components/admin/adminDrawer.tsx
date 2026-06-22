@@ -26,7 +26,7 @@ export default function App() {
 
   // Obtenemos el usuario del store para validar su rol
   const { user } = authorizationStore();
-  const isAdmin = user?.role === "admin" || user?.role === "ADMIN";
+  const isAdmin = ["admin", "ADMIN", "superadmin", "SUPERADMIN"].includes(user?.role || "");
 
   const handleNavigate = (link: string) => {
     navigate(link);

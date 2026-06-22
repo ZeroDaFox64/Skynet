@@ -966,12 +966,12 @@ export default function MesaView() {
             <p className="text-gray-500 dark:text-zinc-400 mb-6 leading-relaxed font-medium">
               Comparte este código o escanea el QR para unirte a la mesa:
             </p>
-            
+
             <div className="flex flex-col items-center justify-center mb-6">
               <div className="bg-white p-2 rounded-2xl shadow-sm mb-4 border border-gray-200">
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent("https://japan-gallery.onrender.com")}`} 
-                  alt="QR Code" 
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent("https://japan-gallery.onrender.com")}`}
+                  alt="QR Code"
                   className="w-40 h-40 rounded-xl"
                 />
               </div>
@@ -987,7 +987,7 @@ export default function MesaView() {
                 rel="noreferrer"
                 className="w-full flex items-center justify-center gap-2 py-3.5 font-bold text-white bg-[#25D366] hover:bg-[#128C7E] rounded-xl shadow-lg transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="w-6 h-6 fill-current"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zM223.9 413.2c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 334.1l-4.4-7.1c-18.9-30-28.8-64.5-28.8-101.2 0-103 83.8-186.8 186.8-186.8 54.7 0 106.2 21.3 144.9 60.1 38.7 38.7 60.1 90.2 60.1 144.9 0 102.9-83.8 186.8-186.7 186.8zm102.6-140.2c-5.6-2.8-33.3-16.5-38.4-18.4-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.4 18.4-17.7 22.2-3.3 3.7-6.5 4.2-12.1 1.4-5.6-2.8-23.7-8.8-45.2-28.1-16.6-14.9-27.8-33.4-31.1-39-3.3-5.6-.3-8.6 2.5-11.4 2.5-2.5 5.6-6.5 8.4-9.8 2.8-3.3 3.7-5.6 5.6-9.3 1.9-3.7 .9-7-4-10-5.1-6-12.1-30.7-16.5-42-4.3-11.1-8.7-9.6-12.5-9.8-3.7-.2-8.3-.2-12.1-.2-4.6 0-12.1 1.7-18.4 8.6-6.3 6.9-24.2 23.7-24.2 57.7s24.7 66.8 28.1 71.4c3.3 4.6 48.6 74.2 117.8 104.1 16.5 7.1 29.3 11.4 39.3 14.6 16.6 5.3 31.7 4.5 43.6 2.7 13.4-2 41.2-16.8 46.9-33 5.6-16.2 5.6-30.1 4-33-1.6-3-6-4.6-11.6-7.4z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="w-6 h-6 fill-current"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zM223.9 413.2c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 334.1l-4.4-7.1c-18.9-30-28.8-64.5-28.8-101.2 0-103 83.8-186.8 186.8-186.8 54.7 0 106.2 21.3 144.9 60.1 38.7 38.7 60.1 90.2 60.1 144.9 0 102.9-83.8 186.8-186.7 186.8zm102.6-140.2c-5.6-2.8-33.3-16.5-38.4-18.4-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.4 18.4-17.7 22.2-3.3 3.7-6.5 4.2-12.1 1.4-5.6-2.8-23.7-8.8-45.2-28.1-16.6-14.9-27.8-33.4-31.1-39-3.3-5.6-.3-8.6 2.5-11.4 2.5-2.5 5.6-6.5 8.4-9.8 2.8-3.3 3.7-5.6 5.6-9.3 1.9-3.7 .9-7-4-10-5.1-6-12.1-30.7-16.5-42-4.3-11.1-8.7-9.6-12.5-9.8-3.7-.2-8.3-.2-12.1-.2-4.6 0-12.1 1.7-18.4 8.6-6.3 6.9-24.2 23.7-24.2 57.7s24.7 66.8 28.1 71.4c3.3 4.6 48.6 74.2 117.8 104.1 16.5 7.1 29.3 11.4 39.3 14.6 16.6 5.3 31.7 4.5 43.6 2.7 13.4-2 41.2-16.8 46.9-33 5.6-16.2 5.6-30.1 4-33-1.6-3-6-4.6-11.6-7.4z" /></svg>
                 Compartir por WhatsApp
               </a>
               <button
@@ -1083,7 +1083,7 @@ export default function MesaView() {
                 +
               </button>
             </div>
-            
+
             <div className="mb-6">
               <textarea
                 placeholder="Añadir una nota (ej. Sin cebolla, extra queso...)"
@@ -1168,79 +1168,79 @@ export default function MesaView() {
 
       {/* Notificaciones de solicitudes de split (Solo para el dueño) */}
       <div className="fixed top-4 right-4 z-[150] flex flex-col gap-3">
-                {roomState.splitRequests?.filter(r => r.ownerUsername === username).map(req => (
-                  <div key={req.id} className="bg-white dark:bg-zinc-800 p-5 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-700 w-80 animate-in slide-in-from-right">
-                    <div className="flex items-center gap-3 mb-3 border-b border-gray-100 dark:border-zinc-700 pb-3">
-                      <span className="text-2xl bg-yellow-100 p-2 rounded-full">🔔</span>
-                      <h4 className="font-black text-gray-900 dark:text-white">Solicitud de Pago</h4>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4 leading-relaxed">
-                      <strong className="text-gray-900 dark:text-zinc-200">{req.requesterUsername}</strong> quiere pagar <strong className="text-green-600 dark:text-green-400">${req.amount.toFixed(2)}</strong> de tu <strong>{req.consumptionName}</strong>.
-                    </p>
-                    <div className="bg-gray-50 dark:bg-zinc-900 rounded-xl p-3 mb-4 text-center">
-                      <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Monto a cubrir</p>
-                      <p className="text-2xl font-black text-green-600 dark:text-green-500">${req.amount.toFixed(2)}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleRespondSplit(req.id, false)}
-                        className="flex-1 py-2 font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors border border-gray-200"
-                      >
-                        Rechazar
-                      </button>
-                      <button
-                        onClick={() => handleRespondSplit(req.id, true)}
-                        className="flex-1 py-2 font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-sm"
-                      >
-                        Aceptar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Modal de confirmación para Abandonar Mesa */}
-              {showAbandonModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[200] p-4 animate-in fade-in">
-                  <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] w-full max-w-md shadow-2xl border border-gray-100 dark:border-zinc-800 scale-100 animate-in zoom-in-95 duration-200">
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center shrink-0">
-                        <span className="text-3xl">🚪</span>
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-black text-gray-900 dark:text-white">Abandonar Mesa</h2>
-                        <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">Esta acción no se puede deshacer.</p>
-                      </div>
-                    </div>
-                    <div className="mb-8">
-                      {isHost ? (
-                        <p className="text-gray-600 dark:text-zinc-300 font-medium leading-relaxed bg-red-50 dark:bg-red-900/10 p-4 rounded-xl border border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-300">
-                          ⚠️ Eres el <strong>Host</strong> de esta mesa. Si abandonas la mesa, <strong className="font-black">SE ELIMINARÁN TODOS LOS REGISTROS</strong> y se desconectará al resto de los usuarios. ¿Estás absolutamente seguro de querer proceder?
-                        </p>
-                      ) : (
-                        <p className="text-gray-600 dark:text-zinc-300 font-medium leading-relaxed">
-                          ¿Estás seguro de que deseas abandonar la mesa? Tus registros de consumo permanecerán en la cuenta, pero dejarás de ver las actualizaciones en tiempo real.
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setShowAbandonModal(false)}
-                        className="flex-1 py-3.5 font-bold text-gray-700 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition-colors"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        onClick={handleConfirmAbandonarMesa}
-                        className="flex-1 py-3.5 font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-lg shadow-red-600/30 transition-colors"
-                      >
-                        Sí, Abandonar
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
+        {roomState.splitRequests?.filter(r => r.ownerUsername === username).map(req => (
+          <div key={req.id} className="bg-white dark:bg-zinc-800 p-5 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-700 w-80 animate-in slide-in-from-right">
+            <div className="flex items-center gap-3 mb-3 border-b border-gray-100 dark:border-zinc-700 pb-3">
+              <span className="text-2xl bg-yellow-100 p-2 rounded-full">🔔</span>
+              <h4 className="font-black text-gray-900 dark:text-white">Solicitud de Pago</h4>
             </div>
-            );
+            <p className="text-sm text-gray-600 dark:text-zinc-400 mb-4 leading-relaxed">
+              <strong className="text-gray-900 dark:text-zinc-200">{req.requesterUsername}</strong> quiere pagar <strong className="text-green-600 dark:text-green-400">${req.amount.toFixed(2)}</strong> de tu <strong>{req.consumptionName}</strong>.
+            </p>
+            <div className="bg-gray-50 dark:bg-zinc-900 rounded-xl p-3 mb-4 text-center">
+              <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Monto a cubrir</p>
+              <p className="text-2xl font-black text-green-600 dark:text-green-500">${req.amount.toFixed(2)}</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleRespondSplit(req.id, false)}
+                className="flex-1 py-2 font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors border border-gray-200"
+              >
+                Rechazar
+              </button>
+              <button
+                onClick={() => handleRespondSplit(req.id, true)}
+                className="flex-1 py-2 font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-sm"
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal de confirmación para Abandonar Mesa */}
+      {showAbandonModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[200] p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] w-full max-w-md shadow-2xl border border-gray-100 dark:border-zinc-800 scale-100 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center shrink-0">
+                <span className="text-3xl">🚪</span>
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white">Abandonar Mesa</h2>
+                <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">Esta acción no se puede deshacer.</p>
+              </div>
+            </div>
+            <div className="mb-8">
+              {isHost ? (
+                <p className="text-gray-600 dark:text-zinc-300 font-medium leading-relaxed bg-red-50 dark:bg-red-900/10 p-4 rounded-xl border border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-300">
+                  ⚠️ Eres el <strong>Host</strong> de esta mesa. Si abandonas la mesa, <strong className="font-black">SE ELIMINARÁN TODOS LOS REGISTROS</strong> y se desconectará al resto de los usuarios. ¿Estás absolutamente seguro de querer proceder?
+                </p>
+              ) : (
+                <p className="text-gray-600 dark:text-zinc-300 font-medium leading-relaxed">
+                  ¿Estás seguro de que deseas abandonar la mesa? Tus registros de consumo permanecerán en la cuenta, pero dejarás de ver las actualizaciones en tiempo real.
+                </p>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowAbandonModal(false)}
+                className="flex-1 py-3.5 font-bold text-gray-700 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmAbandonarMesa}
+                className="flex-1 py-3.5 font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-lg shadow-red-600/30 transition-colors"
+              >
+                Sí, Abandonar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
 }

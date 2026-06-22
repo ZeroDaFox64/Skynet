@@ -10,7 +10,7 @@ export const handleAttemptLoginOnRegister = async (
     const res = await api.post("authentication/login", data);
     return res;
   } catch (error: any) {
-    return error;
+    return error.response || error;
   }
 };
 
